@@ -116,14 +116,13 @@
       name: '@deepseek-ai/dsh-host-webserver'
       inject: [webStartup]
       config:
-        host: !!js ctx.webStartup.host ?? '127.0.0.1'
+        host: 127.0.0.1
         port: !!js ctx.webStartup.port ?? 3080
 
     - id: web-runtime
       name: '@deepseek-ai/dsh-product-safe'
       inject: [webStartup]
       config:
-        openBrowser: !!js ctx.webStartup.openBrowser
         printUrl: true
         surfaceContext: false
         trustedHosts: !!js ctx.webStartup.trustedHosts

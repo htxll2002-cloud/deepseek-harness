@@ -14,13 +14,25 @@
 
 - `@deepseek-ai/cordis`、`@deepseek-ai/schemastery`
 - `@deepseek-ai/dsh-host-frontend-static`、`@deepseek-ai/dsh-host-webserver`（类型）
-- `@deepseek-ai/dsh-launch-environment`、`@deepseek-ai/dsh-subprocess`（浏览器交接环境清理）
-- `@deepseek-ai/dsh-cmdline`、`commander`、`open`
+- `@deepseek-ai/dsh-cmdline`、`commander`
 - `@deepseek-ai/dsh-tools`（echo）
 - `@deepseek-ai/dsh-llm`（mock 适配器）
 - `@deepseek-ai/dsh-invariants`（companion）
 
-没有导入 shell、fs、terminal、code-runtime、skill 或 workspace 包。
+没有导入 shell、fs、terminal、code-runtime、skill、workspace、`node:child_process`、`open` 或 `dsh-subprocess`。
+
+## Runtime boundary
+
+| Rule | Product-safe |
+|---|---|
+| Bind host | 仅 `127.0.0.1`（`assertProductSafeBindHost`；省略即该字面量） |
+| Browser auto-open | 已删除 |
+| Direct `node:child_process` | 0 |
+| Direct `@deepseek-ai/dsh-subprocess` | 0 |
+| Direct `@deepseek-ai/dsh-subprocess-local` | 0 |
+| Direct `open` | 0 |
+
+公网入口是以后的 BFF / 反向代理。官方 `dsh web` 仍会打开浏览器。
 
 ## Transitive runtime import (Loader rows)
 

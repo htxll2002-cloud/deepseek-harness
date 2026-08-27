@@ -156,6 +156,7 @@ export const FORBIDDEN_ROW_IDS = [
   'tool-subagent',
   'tool-cordis',
   'ui-workspace',
+  'ui-terminal',
   'ui-skill',
   'ui-subagent',
   'ui-jobs',
@@ -191,6 +192,28 @@ export const FORBIDDEN_PACKAGE_DEPS = [
   '@deepseek-ai/dsh-client-ui-workspace',
   '@deepseek-ai/dsh-fs-sandbox',
   '@deepseek-ai/dsh-shell-env',
+  '@deepseek-ai/dsh-subprocess',
+  '@deepseek-ai/dsh-subprocess-local',
+  'open',
+  '@deepseek-ai/dsh-client-ui-skill',
+  '@deepseek-ai/dsh-client-ui-cordis',
+  '@deepseek-ai/dsh-client-ui-settings-plugins',
+  '@deepseek-ai/dsh-client-ui-directory-picker-browse',
+  '@deepseek-ai/dsh-client-ui-directory-picker-native',
+] as const
+
+/** Coding-only client packages that production `modules` must not scan in. */
+export const FORBIDDEN_CLIENT_MODULE_PACKAGES = [
+  '@deepseek-ai/dsh-client-ui-workspace',
+  '@deepseek-ai/dsh-client-ui-skill',
+  '@deepseek-ai/dsh-client-ui-cordis',
+  '@deepseek-ai/dsh-client-ui-settings-plugins',
+  '@deepseek-ai/dsh-client-ui-settings-plugin-inventory',
+  '@deepseek-ai/dsh-client-ui-directory-picker-browse',
+  '@deepseek-ai/dsh-client-ui-directory-picker-native',
+  '@deepseek-ai/dsh-client-ui-agent-preset',
+  '@deepseek-ai/dsh-client-ui-commands',
+  '@deepseek-ai/dsh-client-ui-input-trigger',
 ] as const
 
 export interface ProductSafeWorld {
@@ -243,13 +266,15 @@ export function rpcValue(body: unknown): unknown {
 }
 
 const originalResolve = internals.resolveDistIndex
-const originalOpen = internals.openBrowser
 
 /**
  * Boot the product-safe bundle over a temp harness home.
+ * @param options - optional later patches that replace earlier rows.
  * @returns the settled world and a disposer.
  */
-export async function launchProductSafe(): Promise<ProductSafeWorld> {
+export async function launchProductSafe(options?: {
+  extraPatches?: PatchOptions[]
+}): Promise<ProductSafeWorld> {
   const harnessHome = await mkdtemp(join(tmpdir(), 'dsh-product-safe-'))
   const persistenceRoot = join(harnessHome, 'sessions')
   const distDir = join(harnessHome, 'dist')
@@ -258,7 +283,6 @@ export async function launchProductSafe(): Promise<ProductSafeWorld> {
   const distIndex = join(distDir, 'index.html')
   await writeFile(distIndex, '<!doctype html><title>product-safe</title>')
   internals.resolveDistIndex = () => distIndex
-  internals.openBrowser = async () => {}
 
   const previousHome = process.env.DSH_HOME
   process.env.DSH_HOME = harnessHome
@@ -278,12 +302,13 @@ export async function launchProductSafe(): Promise<ProductSafeWorld> {
     { id: 'webserver', config: { host: '127.0.0.1', port: 0 } },
     {
       id: 'web-runtime',
-      config: { openBrowser: false, printUrl: false, surfaceContext: false, trustedHosts: [] },
+      config: { printUrl: false, surfaceContext: false, trustedHosts: [] },
     },
     // Client bundles are a separate build face. Host security tests do not
     // need `/plugins/<id>/client.js`; composition absence is asserted from
     // the patch rows themselves.
     { id: 'modules', disabled: true },
+    ...options?.extraPatches ?? [],
   ]
 
   healProfilesModuleFallback(INSTALL_ANCHOR, harnessHome)
@@ -299,7 +324,7 @@ export async function launchProductSafe(): Promise<ProductSafeWorld> {
     { source: 'process', values: {} },
   ]))
   provideCmdline(ctx, {
-    args: ['--no-open', '--port', '0'],
+    args: ['--port', '0'],
     exit: (code) => {
       throw new Error(`product-safe test: unexpected exit ${String(code)}`)
     },
@@ -318,7 +343,6 @@ export async function launchProductSafe(): Promise<ProductSafeWorld> {
     await ctx.fiber.dispose().catch(() => {})
     process.env.DSH_HOME = previousHome
     internals.resolveDistIndex = originalResolve
-    internals.openBrowser = originalOpen
     await rm(harnessHome, { recursive: true, force: true })
     throw error
   }
@@ -338,7 +362,6 @@ export async function launchProductSafe(): Promise<ProductSafeWorld> {
       await ctx.fiber.dispose()
       process.env.DSH_HOME = previousHome
       internals.resolveDistIndex = originalResolve
-      internals.openBrowser = originalOpen
       await rm(harnessHome, { recursive: true, force: true })
     },
   }

@@ -39,7 +39,9 @@ Workspace 是产品/组织能力，不是核心 session 协议的硬依赖。`Se
 
 ## Host bind
 
-Product-safe Host 绑定 `127.0.0.1`。Startup 拒绝 `--host 0.0.0.0`。M1 不增加 Auth，也不得监听公网。
+Product-safe Host 只绑定 `127.0.0.1`。`assertProductSafeBindHost` 是唯一规则：省略 host 表示 `127.0.0.1`；任何其他值都会失败关闭。Startup 与 runtime 插件共用该函数。patch 把 `webserver.host` 钉在 `127.0.0.1`。`localhost`、`::1`、`127.x.x.x`、LAN IP、`0.0.0.0`、`::` 以及主机名都会被拒绝。公网入口是以后的 BFF / 反向代理，不是本运行时。
+
+已删除浏览器自动打开。Startup 打印 `dsh product-safe: http://127.0.0.1:<port>`。组合包不 spawn 子进程、不调用 `open`，也不依赖 `dsh-subprocess`。
 
 ## HTTP allowlist
 

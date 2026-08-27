@@ -20,6 +20,10 @@ M1 验收记录的持久副本。工作位于 `product/m1-safe-harness`。`stabl
 - Dangerous API bypass: 0
 - Coding UI: ABSENT from composition
 - Conversation / streaming / Tool View: PRESERVED
+- Bind: `127.0.0.1` ONLY
+- Browser auto-open: REMOVED
+- Product-safe direct `node:child_process`: 0
+- Product-safe direct `dsh-subprocess` / `dsh-subprocess-local` / `open`: 0
 
 ## Gates
 
@@ -29,14 +33,13 @@ M1 验收记录的持久副本。工作位于 `product/m1-safe-harness`。`stabl
 | `CI=true pnpm install --no-optional --frozen-lockfile` | PASS（lockfile 已是最新；没有 Foundation 升级） |
 | `pnpm typecheck` | PASS |
 | `pnpm lint` / `lint:contracts-ready` | PASS |
-| `pnpm test` | 14592 passed, 114 skipped, **15 failed** — 仍是相同的 3 个 M0 文件 |
+| `pnpm test` | 14638 passed, 114 skipped, **14 failed** — 2 个 M0 文件 |
 | `pnpm build` | PASS |
 
 已知可选失败（**没有**安装 `@latest`）：
 
 - `packages/subagent/subagent-claude-code/tests/real-product.spec.ts` (8)
 - `packages/subagent/subagent-codex/tests/real-product.spec.ts` (6)
-- `scripts/gen-third-party-notices.spec.ts` (1)
 
 ## Patches
 

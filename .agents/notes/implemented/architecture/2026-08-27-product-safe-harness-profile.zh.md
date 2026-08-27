@@ -18,7 +18,7 @@ Coding 包仍留在 monorepo 中，也仍在官方 `dsh web` 的安装图上。�
 
 会话创建可以没有 cwd。Core session 本来就允许可选 `cwd`。API 网关默认仍是 `requireWorkspace: true`（官方 `mkdir` + `process.cwd()`）。Product-safe 设为 `requireWorkspace: false`。不会创建虚拟项目目录。
 
-Host HTTP 使用 `connection.allowedMethods`。官方 web 省略该键。Product-safe 只允许 session/llm/preset list-select/`settings.describe`/`host.describe`。其他方法在网关前返回 HTTP 404。`host.describe` 保留，因为浏览器握手需要它；在不要求 workspace 时会剥离路径。进程绑定 `127.0.0.1` 并拒绝 `0.0.0.0`。
+Host HTTP 使用 `connection.allowedMethods`。官方 web 省略该键。Product-safe 只允许 session/llm/preset list-select/`settings.describe`/`host.describe`。其他方法在网关前返回 HTTP 404。`host.describe` 保留，因为浏览器握手需要它；在不要求 workspace 时会剥离路径。进程只绑定 `127.0.0.1`（`assertProductSafeBindHost` 由 startup 与 runtime 共用）。它打印 URL，不打开浏览器。
 
 Conversation 与侧栏 New Session 读取 slot 占用情况。空的 `conversation.hero.workspace` / `sidebar.workspaces` 空洞会执行 `sessions.create({})`，而不是打开 coding 选择器。官方 web 仍占用这些 slot，因此其首次运行流程不变。
 
@@ -28,7 +28,7 @@ Conversation 与侧栏 New Session 读取 slot 占用情况。空的 `conversati
 
 ## Testing
 
-`packages/bundle/product-safe/tests/` 在临时 `$DSH_HOME` 上启动真实 patch：组合行缺失、敌意 `tools.execute`、HTTP 允许列表 404、无 cwd 会话持久化、echo + mock LLM、拒绝 `--host 0.0.0.0`。Apiproxy、connection、conversation 和 sidebar 包带有能力开关单元测试。见 [docs/m1/product-safe-security-tests.md](../../../../docs/m1/product-safe-security-tests.zh.md)。
+`packages/bundle/product-safe/tests/` 在临时 `$DSH_HOME` 上启动真实 patch：组合行缺失、敌意 `tools.execute`、HTTP 允许列表 404、无 cwd 会话持久化、echo + mock LLM、bind-host 拒绝、真实 `127.0.0.1` 监听。Apiproxy、connection、conversation 和 sidebar 包带有能力开关单元测试。见 [docs/m1/product-safe-security-tests.md](../../../../docs/m1/product-safe-security-tests.zh.md)。
 
 ## Alternatives considered
 

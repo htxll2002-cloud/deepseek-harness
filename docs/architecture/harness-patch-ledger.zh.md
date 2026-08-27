@@ -48,7 +48,7 @@ git diff stable-base...HEAD
 | `apps/cli/src/args.ts` | `dsh product-safe` 别名 | CONFIGURATION | CLI 帮助 | YES for that alias |
 | `apps/cli/src/profile-boot.ts` | 当组合包把 `roots` 留空时使用 product-safe preset 根 | NEW_PRODUCT_COMPOSITION | 官方 web 仍使用随附 coding presets | YES for product-safe |
 | `apps/cli/package.json` | 依赖新组合包 | NEW_BUNDLE | 安装图 | YES |
-| `packages/bundle/product-safe/**` | 独立安全组合包、echo、mock LLM、允许列表 | NEW_BUNDLE / PRODUCT_ADAPTER | none（新包） | YES |
+| `packages/bundle/product-safe/**` | 独立安全组合包、echo、mock LLM、允许列表；只绑定 `127.0.0.1`；打印 URL，不 spawn 浏览器 | NEW_BUNDLE / PRODUCT_ADAPTER | none（新包） | YES |
 | `apps/cli/config/product-safe-presets/product-safe/**` | Safe Generic Product Agent | NEW_PRESET | none | YES |
 | `scripts/check-workspace-constraints.ts` | echo/llm-mock/allowed-methods 的额外发布文件 | CONFIGURATION | 约束 | NO |
 | `knip.json` | 组合包 workspace ignore | CONFIGURATION | knip | NO |

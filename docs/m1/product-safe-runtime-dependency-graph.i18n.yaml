@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/m1/product-safe-runtime-dependency-graph.md
-product-safe-runtime-dependency-graph.md: 16f3bfb94f07f8c46d184262734c1d0c7240632f
-product-safe-runtime-dependency-graph.zh.md: ae54d6e829452f4099e092c814dd40bccd27617b
+product-safe-runtime-dependency-graph.md: d57a81fc9379587eed3d74aa261b360d023ea5a8
+product-safe-runtime-dependency-graph.zh.md: 1db1685061b81627a575ddb1e7a0bdebfc818df6

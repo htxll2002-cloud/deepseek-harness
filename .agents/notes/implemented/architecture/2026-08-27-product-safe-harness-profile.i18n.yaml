@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-27-product-safe-harness-profile.md
-2026-08-27-product-safe-harness-profile.md: 18ee146245208e4b369e15924cd79e04f3fd7363
-2026-08-27-product-safe-harness-profile.zh.md: 31c7e44596a645f81105b1c3aafd785fe8fd4db9
+2026-08-27-product-safe-harness-profile.md: 60f8b33e009cdeff6601c811e81b0d649a556c9f
+2026-08-27-product-safe-harness-profile.zh.md: 04559b7cb9004c60b7b996b7fbd0c4458af62bca

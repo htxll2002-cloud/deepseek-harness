@@ -14,13 +14,25 @@ From `packages/bundle/product-safe/src`:
 
 - `@deepseek-ai/cordis`, `@deepseek-ai/schemastery`
 - `@deepseek-ai/dsh-host-frontend-static`, `@deepseek-ai/dsh-host-webserver` (types)
-- `@deepseek-ai/dsh-launch-environment`, `@deepseek-ai/dsh-subprocess` (browser handoff env scrub)
-- `@deepseek-ai/dsh-cmdline`, `commander`, `open`
+- `@deepseek-ai/dsh-cmdline`, `commander`
 - `@deepseek-ai/dsh-tools` (echo)
 - `@deepseek-ai/dsh-llm` (mock adapter)
 - `@deepseek-ai/dsh-invariants` (companion)
 
-No import of shell, fs, terminal, code-runtime, skill, or workspace packages.
+No import of shell, fs, terminal, code-runtime, skill, workspace, `node:child_process`, `open`, or `dsh-subprocess`.
+
+## Runtime boundary
+
+| Rule | Product-safe |
+|---|---|
+| Bind host | `127.0.0.1` only (`assertProductSafeBindHost`; omitted means that literal) |
+| Browser auto-open | Removed |
+| Direct `node:child_process` | 0 |
+| Direct `@deepseek-ai/dsh-subprocess` | 0 |
+| Direct `@deepseek-ai/dsh-subprocess-local` | 0 |
+| Direct `open` | 0 |
+
+Public ingress is a later BFF / reverse proxy. Official `dsh web` still opens a browser.
 
 ## Transitive runtime import (Loader rows)
 

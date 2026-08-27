@@ -18,7 +18,7 @@ Coding packages remain in the monorepo and on the official `dsh web` install gra
 
 Session create is cwd-less. Core session already allows optional `cwd`. The API gateway default remains `requireWorkspace: true` (official `mkdir` + `process.cwd()`). Product-safe sets `requireWorkspace: false`. No virtual project directory is created.
 
-Host HTTP uses `connection.allowedMethods`. Official web omits the key. Product-safe allowlists session/llm/preset list-select/`settings.describe`/`host.describe`. Other methods return HTTP 404 before the gateway. `host.describe` stays because the browser handshake requires it; paths are stripped when workspace is not required. The process binds `127.0.0.1` and rejects `0.0.0.0`.
+Host HTTP uses `connection.allowedMethods`. Official web omits the key. Product-safe allowlists session/llm/preset list-select/`settings.describe`/`host.describe`. Other methods return HTTP 404 before the gateway. `host.describe` stays because the browser handshake requires it; paths are stripped when workspace is not required. The process binds `127.0.0.1` only (`assertProductSafeBindHost` is shared by startup and runtime). It prints the URL and does not open a browser.
 
 Conversation and sidebar New Session read slot occupancy. An empty `conversation.hero.workspace` / `sidebar.workspaces` hole creates `sessions.create({})` instead of opening the coding picker. Official web still occupies those slots, so its first-run flow is unchanged.
 
@@ -28,7 +28,7 @@ The only model-facing tool is the fixture `product_safe_echo`. The host-plane ad
 
 ## Testing
 
-`packages/bundle/product-safe/tests/` boots the real patch over a temp `$DSH_HOME`: composition row absence, hostile `tools.execute`, HTTP allowlist 404s, cwd-less session persist, echo + mock LLM, `--host 0.0.0.0` rejection. Apiproxy, connection, conversation, and sidebar packages carry the capability-flag unit tests. See [docs/m1/product-safe-security-tests.md](../../../../docs/m1/product-safe-security-tests.md).
+`packages/bundle/product-safe/tests/` boots the real patch over a temp `$DSH_HOME`: composition row absence, hostile `tools.execute`, HTTP allowlist 404s, cwd-less session persist, echo + mock LLM, bind-host rejection, live `127.0.0.1` listen. Apiproxy, connection, conversation, and sidebar packages carry the capability-flag unit tests. See [docs/m1/product-safe-security-tests.md](../../../../docs/m1/product-safe-security-tests.md).
 
 ## Alternatives considered
 

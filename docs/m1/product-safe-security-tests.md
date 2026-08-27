@@ -15,6 +15,8 @@ All M1 security tests are keyless. They boot `@deepseek-ai/dsh-product-safe` ove
 | `packages/bundle/product-safe/tests/workspace-free-session.spec.ts` | `session.create` with no directory; `header.cwd` undefined; prompt persists under temp JSONL |
 | `packages/bundle/product-safe/tests/static-plugin.spec.ts` | `product_safe_echo` executes; mock LLM `echo:` path emits the tool call; `plugin.install` 404; registry does not grow |
 | `packages/bundle/product-safe/tests/startup.spec.ts` | `--host 0.0.0.0` does not publish `webStartup` |
+| `packages/bundle/product-safe/tests/bind-host.spec.ts` | `assertProductSafeBindHost` accepts only `127.0.0.1`; rejected hosts do not publish `webStartup`; live server listens on `127.0.0.1` only; all-interfaces bind is not adopted |
+| `packages/bundle/product-safe/tests/runtime.spec.ts` | URL print only; no LAN sample; no browser spawn |
 
 Upstream capability tests:
 
@@ -31,4 +33,4 @@ System prompt text such as “Please do not use shell”. The dangerous tools ar
 
 ## Host test overlay
 
-Loader tests disable the `modules` row so `pnpm test` does not require a prior client-bundle build. Production product-safe still mounts `modules`. Coding UI absence is proven by the patch composition (the same scan `modules` would use).
+Loader tests disable the `modules` row so `pnpm test` does not require a prior client-bundle build. Production product-safe still mounts `modules`. `composition.spec.ts` asserts the production patch contains the `modules` row and does not name coding client packages (`ui-workspace`, `ui-skill`, `ui-cordis`, `ui-settings-plugins`, directory pickers, and the rest of `FORBIDDEN_CLIENT_MODULE_PACKAGES`). That is the same insert list `modules` would scan. This test does not boot `client.js`.

@@ -20,6 +20,10 @@ Durable copy of the M1 acceptance record. Work lives on `product/m1-safe-harness
 - Dangerous API bypass: 0
 - Coding UI: ABSENT from composition
 - Conversation / streaming / Tool View: PRESERVED
+- Bind: `127.0.0.1` ONLY
+- Browser auto-open: REMOVED
+- Product-safe direct `node:child_process`: 0
+- Product-safe direct `dsh-subprocess` / `dsh-subprocess-local` / `open`: 0
 
 ## Gates
 
@@ -29,14 +33,13 @@ Durable copy of the M1 acceptance record. Work lives on `product/m1-safe-harness
 | `CI=true pnpm install --no-optional --frozen-lockfile` | PASS (lockfile up to date; no Foundation upgrade) |
 | `pnpm typecheck` | PASS |
 | `pnpm lint` / `lint:contracts-ready` | PASS |
-| `pnpm test` | 14592 passed, 114 skipped, **15 failed** — same 3 M0 files |
+| `pnpm test` | 14638 passed, 114 skipped, **14 failed** — 2 M0 files |
 | `pnpm build` | PASS |
 
 Known optional failures (did **not** install `@latest`):
 
 - `packages/subagent/subagent-claude-code/tests/real-product.spec.ts` (8)
 - `packages/subagent/subagent-codex/tests/real-product.spec.ts` (6)
-- `scripts/gen-third-party-notices.spec.ts` (1)
 
 ## Patches
 

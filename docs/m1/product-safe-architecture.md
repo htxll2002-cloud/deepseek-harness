@@ -39,7 +39,9 @@ The official API gateway previously assigned `process.cwd()` and `mkdir` on crea
 
 ## Host bind
 
-Product-safe Host binds `127.0.0.1`. Startup rejects `--host 0.0.0.0`. M1 does not add Auth and must not listen on the public network.
+Product-safe Host binds `127.0.0.1` only. `assertProductSafeBindHost` is the single rule: omitted host means `127.0.0.1`; any other value fails closed. Startup and the runtime plugin share that function. The patch pins `webserver.host` to `127.0.0.1`. `localhost`, `::1`, `127.x.x.x`, LAN IPs, `0.0.0.0`, `::`, and hostnames are rejected. Public ingress is a later BFF / reverse proxy, not this runtime.
+
+Browser auto-open is removed. Startup prints `dsh product-safe: http://127.0.0.1:<port>`. The bundle does not spawn a child process, call `open`, or depend on `dsh-subprocess`.
 
 ## HTTP allowlist
 

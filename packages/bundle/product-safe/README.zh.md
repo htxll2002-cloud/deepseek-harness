@@ -4,9 +4,9 @@
 
 独立的产品安全 DeepSeek Harness 配置组合。[`cordis.patch.yml`](cordis.patch.yml) 是覆盖空 profile 根的完整 insert —— 它不会先叠加 [`dsh-base`](../base/README.zh.md) 再禁用 coding 行。官方 coding 包仍留在 monorepo 中；本 profile 不加载、不注册、不路由、不展示它们。
 
-本组合包挂载 Core / Agent Loop / Session / Conversation / Tool Protocol / streaming / Tool View / attachment 基础设施，将 Host 绑定到 `127.0.0.1`，并提供官方会话外壳。它不挂载 Shell、文件系统工具、Terminal、Code Runtime、Workspace、目录选择器、Skills、凭据、付费 LLM 适配器、由模型编写的 Extension，以及用户插件管理。
+本组合包挂载 Core / Agent Loop / Session / Conversation / Tool Protocol / streaming / Tool View / attachment 基础设施，将 Host 仅绑定到 `127.0.0.1`，并提供官方会话外壳。它不挂载 Shell、文件系统工具、Terminal、Code Runtime、Workspace、目录选择器、Skills、凭据、付费 LLM 适配器、由模型编写的 Extension，以及用户插件管理。
 
-`dsh --profile product-safe`（别名 `dsh product-safe`）拥有与 `dsh web` 相同的 flag 族（`--host`、`--port`、`--trusted-host`、`--no-open`）。`--host 0.0.0.0` 会被拒绝。普通 startup 提供方发布 `webStartup`；由 flag 配置的行会注入该服务，因此 `dsh product-safe --help` 不会启动服务器。
+`dsh --profile product-safe`（别名 `dsh product-safe`）接受 `--host`、`--port` 和 `--trusted-host`。唯一允许的 `--host` 是 `127.0.0.1`（省略即该字面量）。Startup 打印 URL，不打开浏览器。普通 startup 提供方发布 `webStartup`；由 flag 配置的行会注入该服务，因此 `dsh product-safe --help` 不会启动服务器。
 
 会话创建使用 `requireWorkspace: false`。产品会话可以在未设置 `cwd` 的情况下存在。本 profile 不会伪造 `/tmp` 项目目录。
 

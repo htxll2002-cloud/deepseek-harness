@@ -48,7 +48,7 @@ git diff stable-base...HEAD
 | `apps/cli/src/args.ts` | `dsh product-safe` alias | CONFIGURATION | CLI help | YES for that alias |
 | `apps/cli/src/profile-boot.ts` | Product-safe preset root when bundle left `roots` empty | NEW_PRODUCT_COMPOSITION | official web still uses shipped coding presets | YES for product-safe |
 | `apps/cli/package.json` | Depend on the new bundle | NEW_BUNDLE | install graph | YES |
-| `packages/bundle/product-safe/**` | Standalone safe bundle, echo, mock LLM, allowlist | NEW_BUNDLE / PRODUCT_ADAPTER | none (new package) | YES |
+| `packages/bundle/product-safe/**` | Standalone safe bundle, echo, mock LLM, allowlist; bind `127.0.0.1` only; URL print, no browser spawn | NEW_BUNDLE / PRODUCT_ADAPTER | none (new package) | YES |
 | `apps/cli/config/product-safe-presets/product-safe/**` | Safe Generic Product Agent | NEW_PRESET | none | YES |
 | `scripts/check-workspace-constraints.ts` | Extra published files for echo/llm-mock/allowed-methods | CONFIGURATION | constraints | NO |
 | `knip.json` | Bundle workspace ignore | CONFIGURATION | knip | NO |

@@ -4,9 +4,9 @@ English | [中文](README.zh.md)
 
 Standalone product-safe DeepSeek Harness profile. [`cordis.patch.yml`](cordis.patch.yml) is a complete insert over the empty profile root — it does not layer [`dsh-base`](../base/README.md) and then disable coding rows. Official coding packages stay in the monorepo; this profile does not load, register, route, or display them.
 
-The bundle mounts Core / Agent Loop / Session / Conversation / Tool Protocol / streaming / Tool View / attachment infrastructure, binds the Host to `127.0.0.1`, and serves the official conversation shell. It does not mount Shell, filesystem tools, Terminal, Code Runtime, Workspace, directory picker, Skills, credentials, paid LLM adapters, model-written Extensions, or user plugin management.
+The bundle mounts Core / Agent Loop / Session / Conversation / Tool Protocol / streaming / Tool View / attachment infrastructure, binds the Host to `127.0.0.1` only, and serves the official conversation shell. It does not mount Shell, filesystem tools, Terminal, Code Runtime, Workspace, directory picker, Skills, credentials, paid LLM adapters, model-written Extensions, or user plugin management.
 
-`dsh --profile product-safe` (alias `dsh product-safe`) owns the same flag family as `dsh web` (`--host`, `--port`, `--trusted-host`, `--no-open`). `--host 0.0.0.0` is rejected. The ordinary startup provider publishes `webStartup`; flag-configured rows inject that service, so `dsh product-safe --help` starts no server.
+`dsh --profile product-safe` (alias `dsh product-safe`) accepts `--host`, `--port`, and `--trusted-host`. The only allowed `--host` is `127.0.0.1` (omitted means that literal). Startup prints the URL and does not open a browser. The ordinary startup provider publishes `webStartup`; flag-configured rows inject that service, so `dsh product-safe --help` starts no server.
 
 Session create uses `requireWorkspace: false`. A product session exists with `cwd` unset. The profile does not invent a `/tmp` project directory.
 

@@ -15,6 +15,8 @@
 | `packages/bundle/product-safe/tests/workspace-free-session.spec.ts` | 没有目录的 `session.create`；`header.cwd` 为 undefined；prompt 持久化到临时 JSONL |
 | `packages/bundle/product-safe/tests/static-plugin.spec.ts` | `product_safe_echo` 执行；mock LLM 的 `echo:` 路径发出该工具调用；`plugin.install` 为 404；注册表不增长 |
 | `packages/bundle/product-safe/tests/startup.spec.ts` | `--host 0.0.0.0` 不发布 `webStartup` |
+| `packages/bundle/product-safe/tests/bind-host.spec.ts` | `assertProductSafeBindHost` 只接受 `127.0.0.1`；被拒绝的 host 不发布 `webStartup`；活动服务器只监听 `127.0.0.1`；不接纳 all-interfaces 绑定 |
+| `packages/bundle/product-safe/tests/runtime.spec.ts` | 只打印 URL；不采样 LAN；不 spawn 浏览器 |
 
 上游能力测试：
 
@@ -31,4 +33,4 @@
 
 ## Host test overlay
 
-Loader 测试禁用 `modules` 行，因此 `pnpm test` 不需要事先构建 client-bundle。生产 product-safe 仍挂载 `modules`。Coding UI 缺失由 patch 组合证明（与 `modules` 将使用的扫描相同）。
+Loader 测试禁用 `modules` 行，因此 `pnpm test` 不需要事先构建 client-bundle。生产 product-safe 仍挂载 `modules`。`composition.spec.ts` 断言生产 patch 包含 `modules` 行，并且不点名 coding 客户端包（`ui-workspace`、`ui-skill`、`ui-cordis`、`ui-settings-plugins`、目录选择器，以及 `FORBIDDEN_CLIENT_MODULE_PACKAGES` 的其余项）。那就是 `modules` 会扫描的同一 insert 列表。该测试不启动 `client.js`。
