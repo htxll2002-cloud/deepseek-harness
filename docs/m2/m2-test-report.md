@@ -18,6 +18,7 @@ English | [中文](m2-test-report.zh.md)
 | `packages/bundle/product-safe/tests/replay.spec.ts` | `session.history` + `session.attachment` restore completed images |
 | `packages/bundle/product-safe/tests/security-regression.spec.ts` | dangerous tools = 0, allowlist unchanged, no gallery/settings/IMAGE_ROUTE |
 | `packages/bundle/product-safe/tests/llm-mock.spec.ts` | mock routing for generate/edit/echo |
+| `packages/bundle/product-safe/tests/source-transport.spec.ts` | UI `draftWithEditSource` → host `planProductSafeMock` for Variant 2 |
 
 M1 composition, bind-host, host-deny, and cwd-less session tests remain.
 
@@ -32,4 +33,4 @@ pnpm run build
 
 Results are recorded in [m2-result.md](m2-result.md) after the gate run.
 
-M2 suite count: 19 files, 83 tests, all passed.
+M2 suite count: 20 files, 84 tests, all passed.

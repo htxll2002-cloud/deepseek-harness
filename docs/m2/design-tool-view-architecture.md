@@ -35,6 +35,10 @@ The mock encoder writes labeled PNG bytes. Same prompt, aspect ratio, and varian
 
 Current source / selection state is **SPIKE ONLY**. It lives in a session-scoped, non-persisted store and in the composer `[source:<attachmentId>]` token. It is not product artifact truth.
 
+SOURCE TOKEN STATUS: `TEMPORARY_M2_ONLY`. `[source:<attachmentId>]` is M2 spike transport only. It is not a product API. A production LLM must not parse or emit this token. After M3/M5 introduce product current-artifact working state, Continue Editing must send that working state plus structured Agent context instead of this composer token.
+
+Harness `attachmentId` is the M2 conversation binary reference. It is not a product `artifact_id`. A later product control plane may give an artifact its own `artifact_id` that references an underlying binary, attachment, or storage object. M2 does not implement artifacts and does not use `attachmentId` as an artifact primary key.
+
 External durable job: **NOT IMPLEMENTED**.
 
 Artifact DAG: **NOT IMPLEMENTED**.

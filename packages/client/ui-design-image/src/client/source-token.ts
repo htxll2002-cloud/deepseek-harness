@@ -1,4 +1,7 @@
-/** Composer token Continue Editing writes so the next edit is explicit. */
+/**
+ * Composer token Continue Editing writes so the next edit is explicit.
+ * TEMPORARY_M2_ONLY spike transport; not a product API.
+ */
 
 const SOURCE_TOKEN = /\[source:([^\]]+)\]/
 

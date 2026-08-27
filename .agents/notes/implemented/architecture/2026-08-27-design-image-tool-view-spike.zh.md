@@ -16,7 +16,7 @@ M2 新增两个 private 第一方包，而不是把 `@deepseek-ai/dsh-product-sa
 
 `@deepseek-ai/dsh-image-tools` 从 product-safe preset 挂载 `generate_image` 与 `edit_image`。工具体调用确定性 mock PNG 编码器，并通过 `ctx.attachments.saveImage` 持久化 variant。`edit_image` 在当前 session 中查找调用方提供的 `source_attachment_id`，找不到就拒绝。目录从不出现 provider 工具名。
 
-`@deepseek-ai/dsh-client-ui-design-image` 用这两个 key 占用 `tool.call.toolview`，并用 Continue Editing chip 占用 `conversation.input.dock`。Continue Editing 把 `[source:<attachmentId>]` 写入 composer 草稿。mock LLM 解析该 token。选择存在于会话作用域 store，没有 persist key。
+`@deepseek-ai/dsh-client-ui-design-image` 用这两个 key 占用 `tool.call.toolview`，并用 Continue Editing chip 占用 `conversation.input.dock`。Continue Editing 把 `[source:<attachmentId>]` 写入 composer 草稿。mock LLM 解析该 token。该 token 是 `TEMPORARY_M2_ONLY` spike 传输，不是产品 API，真实生产 LLM 不得依赖它。Harness `attachmentId` 是会话二进制引用，不是产品 `artifact_id`。选择存在于会话作用域 store，没有 persist key。官方 client slot catalog 描述已发布的 coding/web 组合包，不收录这些仅产品占用者。
 
 图片通过已有的 `session.attachment` RPC 加载。没有新增 Host 路由。没有 IndexedDB 画廊、provider 设置 UI 或工作区保存。
 
@@ -24,7 +24,7 @@ workspace 包名仍使用 `@deepseek-ai/dsh-*`，因为 monorepo 约束要求该
 
 ## 测试
 
-宿主单元测试覆盖 count/aspect/prompt 校验、`[M2_FAIL]`、唯一 attachment id，以及显式 source 查找。客户端测试覆盖 keyed Tool View 注册、对 variant 2 的 Continue Editing，以及持久化 block 重放。product-safe 真实组合测试覆盖 generate → select → edit 会话链、`session.history` + `session.attachment` 重载，以及 M1 安全边界。
+宿主单元测试覆盖 count/aspect/prompt 校验、`[M2_FAIL]`、唯一 attachment id，以及显式 source 查找。客户端测试覆盖 keyed Tool View 注册、对 variant 2 的 Continue Editing，以及持久化 block 重放。product-safe 真实组合测试覆盖 generate → select → edit 会话链、`session.history` + `session.attachment` 重载，以及 M1 安全边界。一条跨边界规格把 UI 的 `draftWithEditSource` helper 喂给 product-safe mock planner，避免 token 生产端与消费端各自漂移。
 
 ## 考虑过的替代
 
@@ -38,4 +38,4 @@ workspace 包名仍使用 `@deepseek-ai/dsh-*`，因为 monorepo 约束要求该
 
 ## 后果
 
-在 M3/M5 引入 artifact working state 之前，选择只是 spike 状态。真实 provider 和 durable job 等到 M4。
+在 M3/M5 引入产物 working state 之前，选择只是 spike 状态。届时必须以当前产品产物加结构化 Agent context 替换 `[source:<attachmentId>]`。真实 provider 和 durable job 等到 M4。

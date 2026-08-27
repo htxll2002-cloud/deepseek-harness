@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-27-design-image-tool-view-spike.md
-2026-08-27-design-image-tool-view-spike.md: 7ff6549038650eb6f25be9c889ba439c10f1c1e9
-2026-08-27-design-image-tool-view-spike.zh.md: 4fe43a285cb5863ee2abcf3473a5321ee9e05803
+2026-08-27-design-image-tool-view-spike.md: fa19483e18550c7fe0579bc4e82c5410845b7750
+2026-08-27-design-image-tool-view-spike.zh.md: 034b7f397b3420aa4b92e10dab6b6aaafe482ed0

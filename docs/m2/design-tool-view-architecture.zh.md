@@ -35,6 +35,10 @@ Mock 编码器写入带标签的 PNG 字节。相同 prompt、宽高比和 varia
 
 当前 source / selection 状态是 **SPIKE ONLY**。它存在于会话作用域、且不持久化的 store，以及 composer 的 `[source:<attachmentId>]` token 中。它不是产品 artifact 真相。
 
+SOURCE TOKEN STATUS: `TEMPORARY_M2_ONLY`。`[source:<attachmentId>]` 只允许作为 M2 spike 传输。它不是产品 API。真实生产 LLM 不得解析或发出该 token。M3/M5 建立产品当前产物 working state 后，Continue Editing 必须改为发送该 working state 与结构化 Agent context，而不是这个 composer token。
+
+Harness `attachmentId` 是 M2 会话里的二进制引用。它不是产品 `artifact_id`。后续产品控制面可以给产物自己的 `artifact_id`，由产物引用底层 binary、attachment 或存储对象。M2 不实现产物，也不把 `attachmentId` 当作产物主键。
+
 外部 durable job：**未实现**。
 
 Artifact DAG：**未实现**。

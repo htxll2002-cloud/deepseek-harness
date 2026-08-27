@@ -18,6 +18,7 @@
 | `packages/bundle/product-safe/tests/replay.spec.ts` | `session.history` + `session.attachment` 恢复已完成图片 |
 | `packages/bundle/product-safe/tests/security-regression.spec.ts` | 危险工具 = 0、允许列表不变、无画廊/设置/IMAGE_ROUTE |
 | `packages/bundle/product-safe/tests/llm-mock.spec.ts` | generate/edit/echo 的 mock 路由 |
+| `packages/bundle/product-safe/tests/source-transport.spec.ts` | UI `draftWithEditSource` → 宿主 `planProductSafeMock`，锁定 Variant 2 |
 
 M1 的组合、bind-host、host-deny 和无 cwd 会话测试仍然保留。
 
@@ -32,4 +33,4 @@ pnpm run build
 
 门禁结果记在 [m2-result.zh.md](m2-result.zh.md)。
 
-M2 套件数量：19 个文件、83 个测试，全部通过。
+M2 套件数量：20 个文件、84 个测试，全部通过。

@@ -1,5 +1,6 @@
 /**
  * Composer token Continue Editing writes so the next edit_image call is explicit.
+ * TEMPORARY_M2_ONLY spike transport; not a product API.
  * @module @deepseek-ai/dsh-image-tools/edit-source
  */
 

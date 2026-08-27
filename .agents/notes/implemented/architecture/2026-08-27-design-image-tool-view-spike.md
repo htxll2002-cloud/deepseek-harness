@@ -16,7 +16,7 @@ M2 adds two private first-party packages instead of growing `@deepseek-ai/dsh-pr
 
 `@deepseek-ai/dsh-image-tools` mounts `generate_image` and `edit_image` from the product-safe preset. The bodies call a deterministic mock PNG encoder and persist variants through `ctx.attachments.saveImage`. `edit_image` looks up the caller-supplied `source_attachment_id` in the current session and refuses a missing source. The catalog never names a provider tool.
 
-`@deepseek-ai/dsh-client-ui-design-image` occupies `tool.call.toolview` with those two keys and occupies `conversation.input.dock` with a Continue Editing chip. Continue Editing writes `[source:<attachmentId>]` into the composer draft. The mock LLM parses that token. Selection lives in a session-scoped store with no persist key.
+`@deepseek-ai/dsh-client-ui-design-image` occupies `tool.call.toolview` with those two keys and occupies `conversation.input.dock` with a Continue Editing chip. Continue Editing writes `[source:<attachmentId>]` into the composer draft. The mock LLM parses that token. The token is `TEMPORARY_M2_ONLY` spike transport, not a product API, and a production LLM must not depend on it. Harness `attachmentId` is the conversation binary reference, not a product `artifact_id`. Selection lives in a session-scoped store with no persist key. The official client slot catalog describes the shipped coding/web bundle and omits these product-only occupants.
 
 Images load through the existing `session.attachment` RPC. There is no new Host route. There is no IndexedDB gallery, provider settings UI, or workspace save.
 
@@ -24,7 +24,7 @@ Workspace package names stay `@deepseek-ai/dsh-*` because the monorepo constrain
 
 ## Testing
 
-Host unit specs cover count/aspect/prompt validation, `[M2_FAIL]`, unique attachment ids, and explicit source lookup. Client specs cover keyed Tool View registration, variant-2 Continue Editing, and durable-block replay. Product-safe REAL composition specs cover the generate → select → edit session chain, `session.history` + `session.attachment` reload, and the M1 security boundary.
+Host unit specs cover count/aspect/prompt validation, `[M2_FAIL]`, unique attachment ids, and explicit source lookup. Client specs cover keyed Tool View registration, variant-2 Continue Editing, and durable-block replay. Product-safe REAL composition specs cover the generate → select → edit session chain, `session.history` + `session.attachment` reload, and the M1 security boundary. A cross-boundary spec feeds the UI `draftWithEditSource` helper into the product-safe mock planner so the token producer and consumer cannot drift independently.
 
 ## Alternatives considered
 
@@ -38,4 +38,4 @@ Host unit specs cover count/aspect/prompt validation, `[M2_FAIL]`, unique attach
 
 ## Consequences
 
-Selection is spike state until M3/M5 introduce artifact working state. Real providers and durable jobs wait for M4.
+Selection is spike state until M3/M5 introduce artifact working state. `[source:<attachmentId>]` must be replaced then by current product artifact plus structured Agent context. Real providers and durable jobs wait for M4.

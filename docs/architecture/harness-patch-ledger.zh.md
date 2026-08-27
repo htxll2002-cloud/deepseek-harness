@@ -32,6 +32,7 @@ git diff stable-base...HEAD
 | PRODUCT_ADAPTER | 由第一方包持有的 mock LLM / echo 夹具 / Design 图片 mock |
 | UPSTREAM_CORE_PATCH | 小型宿主能力开关；不是 Agent/Session/Tool 协议 |
 | UPSTREAM_UI_CORE_PATCH | 官方 UI 注入中按占用情况创建会话 |
+| CATALOG_ONLY | 生成的官方 catalog 扫描过滤；不改变运行时占用者或协议 |
 
 ---
 
@@ -126,10 +127,13 @@ product-safe patch 可以省略插件、设置 `requireWorkspace: false`，并�
 | `apps/cli/config/product-safe-presets/product-safe/**` | 用图片工具替换 echo | NEW_PRESET | none | YES |
 | `packages/bundle/product-safe/src/llm-mock.ts` | 路由 generate/edit；仅在重新挂载时走 echo | PRODUCT_ADAPTER | none | YES |
 | `tsconfig.host.json`, `tsconfig.client.json`, `tsconfig.base.json` | 注册新包 | CONFIGURATION | typecheck | NO |
+| `scripts/gen-client-catalog.ts` | 官方 client slot catalog 扫描省略仅产品 Design 包 | CATALOG_ONLY | 官方占用者列表与 M1 一致 | NO |
 
 **UPSTREAM_CORE_PATCH count:** 仍为 1（apiproxy workspace 开关）。M2 没有增加核心协议补丁。
 
 **UPSTREAM_UI_CORE_PATCH count:** 仍为 3。M2 占用官方 slot，不编辑 ConversationRoot。
+
+**M2 新增上游运行时补丁:** 0。`packages/extensions/cordis-client-runner/src/client/slot-catalog.ts` 的 M2 diff 为 0。M2 只增加第一方 Design 包、product-safe 组合、product-safe preset、测试和文档。
 
 见 [docs/m2/design-tool-view-architecture.zh.md](../m2/design-tool-view-architecture.zh.md) 与 [docs/m2/dsh-image-gen-transplant-ledger.zh.md](../m2/dsh-image-gen-transplant-ledger.zh.md)。
 

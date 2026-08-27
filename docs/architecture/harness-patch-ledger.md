@@ -32,6 +32,7 @@ git diff stable-base...HEAD
 | PRODUCT_ADAPTER | Mock LLM / echo fixture / Design image mock owned by first-party packages |
 | UPSTREAM_CORE_PATCH | Small host capability flag; not Agent/Session/Tool protocol |
 | UPSTREAM_UI_CORE_PATCH | Occupancy-driven session create in official UI injects |
+| CATALOG_ONLY | Generated official catalog scan filter; no runtime occupant or protocol change |
 
 ---
 
@@ -126,10 +127,13 @@ Do not delete a patch by faking `/tmp` cwd, CSS-hiding the picker, or changing `
 | `apps/cli/config/product-safe-presets/product-safe/**` | Replace echo with image tools | NEW_PRESET | none | YES |
 | `packages/bundle/product-safe/src/llm-mock.ts` | Route generate/edit; echo only if remounted | PRODUCT_ADAPTER | none | YES |
 | `tsconfig.host.json`, `tsconfig.client.json`, `tsconfig.base.json` | Register the new packages | CONFIGURATION | typecheck | NO |
+| `scripts/gen-client-catalog.ts` | Official client slot catalog scan omits product-only Design packages | CATALOG_ONLY | official occupant list matches M1 | NO |
 
 **UPSTREAM_CORE_PATCH count:** still 1 (apiproxy workspace flag). M2 did not add a core protocol patch.
 
 **UPSTREAM_UI_CORE_PATCH count:** still 3. M2 occupies official slots and does not edit ConversationRoot.
+
+**M2 new upstream runtime patches:** 0. `packages/extensions/cordis-client-runner/src/client/slot-catalog.ts` M2 diff is 0. M2 adds first-party Design packages, product-safe composition, the product-safe preset, tests, and docs.
 
 See [docs/m2/design-tool-view-architecture.md](../m2/design-tool-view-architecture.md) and [docs/m2/dsh-image-gen-transplant-ledger.md](../m2/dsh-image-gen-transplant-ledger.md).
 
