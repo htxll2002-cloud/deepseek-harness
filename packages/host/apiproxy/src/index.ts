@@ -59,6 +59,14 @@ export interface Config {
    * @default 1024
    */
   coldBlankProbeMaxBytes?: number
+  /**
+   * When true (the shipped default), `session.create` without a workspace or
+   * cwd falls back to the Host process directory and materializes it. Product-
+   * safe compositions set this false so a session can exist with no project
+   * directory.
+   * @default true
+   */
+  requireWorkspace?: boolean
 }
 
 /**
@@ -68,8 +76,8 @@ export interface Config {
  */
 export class ApiProxyService extends Service implements ApiProxy {
   static inject = [
-    'agentDefaultModel', 'agents', 'attachments', 'directoryPicker', 'llm', 'sessions', 'subagents', 'sessionQuery',
-    'tools', 'userQuestions', 'workspaceRegistry',
+    'agentDefaultModel', 'agents', 'attachments', 'llm', 'sessions', 'subagents', 'sessionQuery',
+    'tools', 'userQuestions',
   ]
 
   static Config: z<Config> = z.object({
@@ -77,6 +85,7 @@ export class ApiProxyService extends Service implements ApiProxy {
     sessionExportCompressionLevel: z.number().step(1).min(0).max(9)
       .default(DEFAULT_SESSION_LOG_COMPRESSION_LEVEL) as z<SessionLogCompressionLevel>,
     coldBlankProbeMaxBytes: z.natural().default(DEFAULT_COLD_BLANK_PROBE_MAX_BYTES),
+    requireWorkspace: z.boolean().default(true),
   })
 
   readonly sessions: ApiProxy['sessions']
@@ -106,6 +115,7 @@ export class ApiProxyService extends Service implements ApiProxy {
       ...(config.coldBlankProbeMaxBytes === undefined
         ? {}
         : { coldBlankProbeMaxBytes: config.coldBlankProbeMaxBytes }),
+      requireWorkspace: config.requireWorkspace !== false,
     })
     this.sessions = api.sessions
     this.subagents = api.subagents

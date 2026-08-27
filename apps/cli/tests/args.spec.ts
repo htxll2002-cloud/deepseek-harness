@@ -28,6 +28,9 @@ describe('parseDshArgs', () => {
     expect(parse(['web'])).toEqual({ mode: 'profile', profile: 'web', patches: [], args: [] })
     expect(parse(['web', '--patch', 'web.yml']))
       .toEqual({ mode: 'profile', profile: 'web', patches: ['web.yml'], args: [] })
+    expect(parse(['product-safe'])).toEqual({ mode: 'profile', profile: 'product-safe', patches: [], args: [] })
+    expect(parse(['product-safe', '--patch', 'safe.yml']))
+      .toEqual({ mode: 'profile', profile: 'product-safe', patches: ['safe.yml'], args: [] })
   })
 
   it('ends the launcher flags at the first token it does not own', () => {

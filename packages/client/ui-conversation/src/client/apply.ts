@@ -211,7 +211,18 @@ export function apply(ctx: Context): void {
       'conversation.hero.agentPreset': { kind: 'single', scope: 'root' },
     },
     inject: (sessionId: SessionId | undefined): ConversationInjected => ({
-      hooks: { composerBlock: sessionId === undefined ? ABSENT_BLOCK : composerBlocks.storeFor(sessionId) },
+      hooks: {
+        composerBlock: sessionId === undefined ? ABSENT_BLOCK : composerBlocks.storeFor(sessionId),
+        workspaceOccupied: {
+          getSnapshot: () => slots.entries('conversation.hero.workspace').length > 0,
+          subscribe: listener => slots.subscribe('conversation.hero.workspace', listener),
+        },
+      },
+      createWorkspaceFreeSession: async () => {
+        if (sessions.list.getSnapshot().current !== undefined) return
+        const nextId = await sessions.create({})
+        if (sessions.list.getSnapshot().current === undefined) sessions.open(nextId)
+      },
       selectWorkspace: async (workspaceId) => {
         const nextId = await workspaces.connectWorkspace(workspaceId)
         if (sessionId !== undefined && nextId !== sessionId) {

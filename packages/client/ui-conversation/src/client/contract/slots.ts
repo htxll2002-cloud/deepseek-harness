@@ -477,11 +477,21 @@ export interface ConversationInjected {
    */
   selectWorkspace: (workspaceId: WorkspaceId) => Promise<void>
   /**
+   * Create and open a session that does not require a Workspace. Used only
+   * when the hero workspace slot has no occupant.
+   */
+  createWorkspaceFreeSession: () => Promise<void>
+  /**
    * Framework-bound sources. `composerBlock` is this session's block when a
    * plugin raised one; the reason is the blocker's own localized copy, which
-   * the root renders as the inert composer's placeholder.
+   * the root renders as the inert composer's placeholder. `workspaceOccupied`
+   * is live occupancy of `conversation.hero.workspace` — the capability that
+   * decides whether the composer waits for a directory pick.
    */
-  hooks: { composerBlock: ObservableSnapshot<ComposerBlock | undefined> }
+  hooks: {
+    composerBlock: ObservableSnapshot<ComposerBlock | undefined>
+    workspaceOccupied: ObservableSnapshot<boolean>
+  }
 }
 
 /** Business callbacks injected into the strict Session body seat. */

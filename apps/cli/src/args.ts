@@ -10,8 +10,9 @@
  * `dsh --profile tui --resume abc` boots the tui profile with `--resume abc`,
  * and `dsh --profile web -h` prints the web app's help, not this one's.
  *
- * `web` is a hardcoded alias for `--profile web`; `plugin` manages a profile's
- * plugin dependencies by forwarding to pnpm.
+ * `web` is a hardcoded alias for `--profile web`; `product-safe` is the
+ * product-safe profile alias; `plugin` manages a profile's plugin
+ * dependencies by forwarding to pnpm.
  * @module @deepseek-ai/dsh/args
  */
 
@@ -64,6 +65,7 @@ const collect = (value: string, previous: string[] = []): string[] => [...previo
 const HELP_EXAMPLES = `
 Examples:
   dsh --profile web                          boot the web profile (same as: dsh web)
+  dsh --profile product-safe                 boot the product-safe profile (same as: dsh product-safe)
   dsh --profile headless "run the tests"     answer one task, print the result, and exit
   dsh --profile tui --patch ./extra.yml      boot a custom profile with one extra overlay
   dsh --profile tui --resume <session>       arguments after the launcher flags reach the app
@@ -166,6 +168,21 @@ export function parseDshArgs(argv: readonly string[], version: string): DshInvoc
     .action((args: string[], options: BootOptions) => {
       rejectParentOptions('web')
       resolved = resolveBoot(web, 'web', options, args)
+    })
+
+  const productSafe = program.command('product-safe').description('boot the product-safe profile (alias of --profile product-safe); the product-safe app\'s own flags follow')
+  productSafe
+    .helpOption(false)
+    .allowUnknownOption()
+    .passThroughOptions()
+    .enablePositionalOptions()
+    .argument('[args...]', 'arguments for the product-safe app (see: dsh product-safe --help)')
+    .option('--patch <path>', 'extra patch-list overlay applied after the profile layer (repeatable)', collect)
+    .option('--dump-config', 'print the composed product-safe profile tree (with the user layer and any --patch) and exit')
+    .option('--dump-default-config', 'print the product-safe profile\'s bundle layers (no user layer) and exit')
+    .action((args: string[], options: BootOptions) => {
+      rejectParentOptions('product-safe')
+      resolved = resolveBoot(productSafe, 'product-safe', options, args)
     })
 
   const plugin = program.command('plugin').description('manage a profile\'s plugins by forwarding the remaining arguments to pnpm in the profile directory')

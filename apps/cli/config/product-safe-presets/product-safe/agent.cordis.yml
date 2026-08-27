@@ -1,0 +1,13 @@
+# Product-safe agent plane. Identity plus the M1 echo fixture only.
+# Coding tools, terminal, filesystem, skills, and model-written extensions
+# are not mounted.
+
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: Safe Generic Product Agent
+    complete: true
+    includeRuntimeContext: false
+
+- id: product-safe-echo
+  name: '@deepseek-ai/dsh-product-safe/echo'

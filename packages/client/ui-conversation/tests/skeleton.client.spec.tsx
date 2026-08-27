@@ -101,6 +101,14 @@ function mount(
     nestedSubagent?: boolean
     /** A composer block another plugin raised for this session. */
     composerBlock?: { reason: string }
+    /** Live occupancy of the hero workspace hole. Official default is occupied. */
+    workspaceOccupied?: boolean
+    /** Workspace-free session factory used when the workspace hole is empty. */
+    createWorkspaceFreeSession?: () => Promise<void>
+    /** Override the resident session id; `undefined` is the no-session hero. */
+    sessionId?: SessionId | undefined
+    /** Override the list's current selection. */
+    current?: SessionId | undefined
     /** Mutable view ledger used by registration-order regressions. */
     viewTabs?: ViewTab[]
   } = {},
@@ -127,7 +135,9 @@ function mount(
       ...listed && options.nestedSubagent === true && { [parent]: parentRow },
       ...listed && { [SID]: childRow },
     },
-    current: SID,
+    current: Object.hasOwn(options, 'current') || Object.hasOwn(options, 'sessionId')
+      ? options.current
+      : SID,
     phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined,
   })
   const workspaces = createSnapshotStore<WorkspaceListState>(workspaceState(workspaceRows))
@@ -255,13 +265,15 @@ function mount(
       : (opts?.fallback ?? null)
   )) as ConversationRootProps['renderSlotChain']
   const props: ConversationRootProps = {
-    sessionId: SID,
+    sessionId: Object.hasOwn(options, 'sessionId') ? options.sessionId : SID,
     SessionProvider: ({ children }) => children(SID),
     useSession,
     useSessions: bindSnapshotSelector(sessions),
     useWorkspaces: bindSnapshotSelector(workspaces),
     useProjection: (() => undefined),
     useComposerBlock: select => select(options.composerBlock),
+    useWorkspaceOccupied: select => select(options.workspaceOccupied !== false),
+    createWorkspaceFreeSession: options.createWorkspaceFreeSession ?? (async () => {}),
     useInput,
     inputActions,
     renderSlot,
@@ -523,6 +535,28 @@ describe('ConversationRoot resident composer', () => {
     expect(selectWorkspace).toHaveBeenCalledWith(wid('second'))
     expect(b.view.queryByText('Selected Folder')).toBeNull()
     expect(b.view.getByText('one')).toBeTruthy()
+  })
+
+  it('without a workspace occupant the composer is live and creates a workspace-free session', async () => {
+    const createWorkspaceFreeSession = vi.fn(async () => {})
+    const b = mount(
+      conversationSnapshot({ composerPhase: 'blank', blank: true }),
+      [],
+      undefined,
+      {
+        workspaceOccupied: false,
+        createWorkspaceFreeSession,
+        sessionId: undefined,
+        current: undefined,
+      },
+    )
+    expect(b.view.queryByRole('button', { name: '选择工作区' })).toBeNull()
+    expect(b.slotCalls).not.toContain('conversation.hero.workspace')
+    const box = b.view.getByRole('textbox')
+    expect((box as HTMLTextAreaElement).disabled).toBe(true)
+    await vi.waitFor(() => {
+      expect(createWorkspaceFreeSession).toHaveBeenCalledOnce()
+    })
   })
 
   it('blank session keeps the interactive picker chip (workspace switchable until the first message)', () => {

@@ -1,0 +1,3 @@
+name: Safe Generic Product Agent
+description: Product-safe empty agent. No coding, shell, filesystem, or workspace tools.
+order: 1

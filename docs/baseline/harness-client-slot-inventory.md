@@ -1,5 +1,7 @@
 # Harness Client Slot Inventory (M0 BEFORE)
 
+English | [中文](harness-client-slot-inventory.zh.md)
+
 **Commit:** `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
 **Source:** `ctx.slots.inject` / `slots.register` in `packages/client/**/src` and `packages/extensions/ui-cordis`.
 **Extension rule (unchanged):** keyed slot `tool.call.toolview` by **wire tool name**.

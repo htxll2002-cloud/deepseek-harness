@@ -608,6 +608,12 @@ export interface ApiProxyDefaults {
    * falls back to platform detection ({@link canOpenNativePath}).
    */
   canOpenPath?: () => boolean
+  /**
+   * When true (default), a create request that names neither workspace nor cwd
+   * uses {@link cwd} and materializes that directory. Product-safe hosts set
+   * this false so Session creation does not require a filesystem project.
+   */
+  requireWorkspace?: boolean
 }
 
 /** The tool/call payload fields the presenter path reads. */
@@ -1049,6 +1055,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     ?? DEFAULT_SESSION_LOG_COMPRESSION_LEVEL
   const coldBlankProbeMaxBytes = defaults.coldBlankProbeMaxBytes
     ?? DEFAULT_COLD_BLANK_PROBE_MAX_BYTES
+  const requireWorkspace = defaults.requireWorkspace !== false
   /** The seed model each create/resume declares; re-read so it never goes stale. */
   const agentOptions = (): AgentOptions => {
     const { provider, model } = defaults.defaultModelSelection()
@@ -1451,7 +1458,9 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
 
   /** Resolve the Workspace inherited by a fork without making ordinary loose lineage grouped. */
   async function forkWorkspace(source: Pick<Session, 'id' | 'header'>): Promise<Workspace | undefined> {
-    const workspaces = ctx.workspaceRegistry.list()
+    const registry = ctx.get('workspaceRegistry')
+    if (registry === undefined) return undefined
+    const workspaces = registry.list()
     const direct = workspaces.find(workspace => workspace.sessionIds.includes(source.id))
     if (direct !== undefined || source.header.origin !== 'subagent') return direct
 
@@ -1558,7 +1567,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   /** Resolve one requested identity to a live agent, creating or resuming it once. */
   async function ensureSession(
     sessionId: SessionId,
-    cwd: string,
+    cwd: string | undefined,
     checkPersistedIdentity: boolean,
     presetId?: string,
   ): Promise<Agent> {
@@ -1585,7 +1594,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             throw new SubagentSessionOwnership(sessionId)
           }
           if (inspected.meta.cwd !== cwd) {
-            throw new SessionCwdConflict(sessionId, cwd, inspected.meta.cwd)
+            throw new SessionCwdConflict(sessionId, cwd ?? '', inspected.meta.cwd)
           }
           // Resolved from the log, not the header: a session that switched
           // while blank ran every turn under the newer composition.
@@ -1602,17 +1611,19 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           })).agent
         }
 
-        try {
-          await mkdir(cwd, { recursive: true })
-        } catch (error: unknown) {
-          throw new Error(`failed to ensure project directory "${cwd}": ${String(error)}`, { cause: error })
+        if (cwd !== undefined) {
+          try {
+            await mkdir(cwd, { recursive: true })
+          } catch (error: unknown) {
+            throw new Error(`failed to ensure project directory "${cwd}": ${String(error)}`, { cause: error })
+          }
         }
         const composition = await composeAgent(presetId)
         return (await ctx.agents.create({
           sessionId,
           agentOptions: agentOptions(),
           meta: {
-            cwd,
+            ...cwd === undefined ? {} : { cwd },
             ...composition.agentPreset === undefined ? {} : { agentPreset: composition.agentPreset },
           },
           setup: composition.setup,
@@ -1642,17 +1653,21 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     // live, resumed from disk, or recovered by the concurrent-creation catch.
     assertPresetUnchanged(sessionId, presetId, resolveSessionPreset(agent.session))
     if (agent.session.header.cwd !== cwd) {
-      throw new SessionCwdConflict(sessionId, cwd, agent.session.header.cwd)
+      throw new SessionCwdConflict(sessionId, cwd ?? '', agent.session.header.cwd)
     }
     return agent
   }
 
   /** Resolve or create one path while holding the Host's workspace-create chain. */
   function ensureWorkspace(path: string): Promise<{ workspace: Workspace; created: boolean }> {
+    const registry = ctx.get('workspaceRegistry')
+    if (registry === undefined) {
+      return Promise.reject(new Error('workspace registry is not composed on this host'))
+    }
     const operation = workspaceCreationChain.then(async () => {
-      const existing = await ctx.workspaceRegistry.resolveByPath(path)
+      const existing = await registry.resolveByPath(path)
       if (existing !== undefined) return { workspace: existing, created: false }
-      return { workspace: await ctx.workspaceRegistry.create(path), created: true }
+      return { workspace: await registry.create(path), created: true }
     })
     workspaceCreationChain = operation.then(() => undefined, () => undefined)
     return operation
@@ -1679,7 +1694,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     const persistence = ctx.get('sessionPersistence')
     if (persistence !== undefined) {
       const cold = (await persistence.list(signal))
-        .filter(meta => !attached.has(meta.id) && meta.cwd !== undefined)
+        .filter(meta => !attached.has(meta.id) && (requireWorkspace ? meta.cwd !== undefined : true))
       signal?.throwIfAborted()
       for (let offset = 0; offset < cold.length; offset += COLD_SUMMARY_BATCH_SIZE) {
         signal?.throwIfAborted()
@@ -2080,7 +2095,15 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         const sessionId = request.payload.sessionId ?? `session-${randomUUID()}` as SessionId
         let workspace: Workspace | undefined
         if (request.payload.workspaceId !== undefined) {
-          workspace = ctx.workspaceRegistry.get(brandWorkspaceId(request.payload.workspaceId))
+          const registry = ctx.get('workspaceRegistry')
+          if (registry === undefined) {
+            return err(request, {
+              code: 'internal',
+              message: 'workspace registry is absent',
+              details: { workspaceId: request.payload.workspaceId },
+            })
+          }
+          workspace = registry.get(brandWorkspaceId(request.payload.workspaceId))
           if (workspace === undefined) {
             return err(request, {
               code: 'workspace-not-found',
@@ -2089,7 +2112,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             })
           }
         }
-        const cwd = workspace?.path ?? request.payload.cwd ?? defaults.cwd
+        const cwd = workspace?.path ?? request.payload.cwd ?? (requireWorkspace ? defaults.cwd : undefined)
         const requestedPreset = request.payload.agentPreset
         try {
           await ensureSession(sessionId, cwd, request.payload.sessionId !== undefined, requestedPreset)
@@ -2701,13 +2724,28 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
 
     workspace: {
       list(request) {
+        const registry = ctx.get('workspaceRegistry')
+        if (registry === undefined) {
+          return Promise.resolve(err(request, {
+            code: 'internal',
+            message: 'workspace registry is not composed on this host',
+            details: {},
+          }))
+        }
         return Promise.resolve(ok(request, {
-          items: ctx.workspaceRegistry.list().map(workspaceView),
-          archivedSessionIds: [...ctx.workspaceRegistry.archivedSessionIds],
+          items: registry.list().map(workspaceView),
+          archivedSessionIds: [...registry.archivedSessionIds],
         }))
       },
 
       async create(request) {
+        if (ctx.get('workspaceRegistry') === undefined) {
+          return err(request, {
+            code: 'internal',
+            message: 'workspace registry is not composed on this host',
+            details: {},
+          })
+        }
         const { path } = request.payload
         try {
           const { workspace, created } = await ensureWorkspace(path)
@@ -2725,8 +2763,16 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async rename(request) {
+        const registry = ctx.get('workspaceRegistry')
+        if (registry === undefined) {
+          return err(request, {
+            code: 'internal',
+            message: 'workspace registry is not composed on this host',
+            details: {},
+          })
+        }
         const { payload } = request
-        const workspace = ctx.workspaceRegistry.get(brandWorkspaceId(payload.workspaceId))
+        const workspace = registry.get(brandWorkspaceId(payload.workspaceId))
         if (workspace === undefined) return workspaceNotFound(request, payload.workspaceId)
         const title = payload.title.trim()
         // Uniqueness AND the same-title no-op both ride the create chain so
@@ -2735,7 +2781,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         // still lands afterwards.
         const operation = workspaceCreationChain.then(async () => {
           if (title === workspace.title) return
-          if (ctx.workspaceRegistry.list().some(other => other.id !== workspace.id && other.title === title)) {
+          if (registry.list().some(other => other.id !== workspace.id && other.title === title)) {
             throw new WorkspaceNameConflictError(title)
           }
           await workspace.setTitle(title)
@@ -2757,18 +2803,34 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async delete(request) {
+        const registry = ctx.get('workspaceRegistry')
+        if (registry === undefined) {
+          return err(request, {
+            code: 'internal',
+            message: 'workspace registry is not composed on this host',
+            details: {},
+          })
+        }
         const { workspaceId } = request.payload
         const operation = workspaceCreationChain.then(() =>
-          ctx.workspaceRegistry.delete(brandWorkspaceId(workspaceId)))
+          registry.delete(brandWorkspaceId(workspaceId)))
         workspaceCreationChain = operation.then(() => undefined, () => undefined)
         if (!await operation) return workspaceNotFound(request, workspaceId)
         return ok(request, { deleted: true as const })
       },
 
       async insertBefore(request) {
+        const registry = ctx.get('workspaceRegistry')
+        if (registry === undefined) {
+          return err(request, {
+            code: 'internal',
+            message: 'workspace registry is not composed on this host',
+            details: {},
+          })
+        }
         const { workspaceId, beforeWorkspaceId } = request.payload
         try {
-          const workspaceIds = await ctx.workspaceRegistry.insertBefore(
+          const workspaceIds = await registry.insertBefore(
             brandWorkspaceId(workspaceId),
             beforeWorkspaceId === undefined ? undefined : brandWorkspaceId(beforeWorkspaceId),
           )
@@ -2780,8 +2842,16 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async insertSessionBefore(request) {
+        const registry = ctx.get('workspaceRegistry')
+        if (registry === undefined) {
+          return err(request, {
+            code: 'internal',
+            message: 'workspace registry is not composed on this host',
+            details: {},
+          })
+        }
         const { payload } = request
-        const workspace = ctx.workspaceRegistry.get(brandWorkspaceId(payload.workspaceId))
+        const workspace = registry.get(brandWorkspaceId(payload.workspaceId))
         if (workspace === undefined) return workspaceNotFound(request, payload.workspaceId)
         try {
           await workspace.insertSessionBefore(payload.sessionId, payload.beforeSessionId)
@@ -2803,9 +2873,17 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async archiveSession(request) {
+        const registry = ctx.get('workspaceRegistry')
+        if (registry === undefined) {
+          return err(request, {
+            code: 'internal',
+            message: 'workspace registry is not composed on this host',
+            details: {},
+          })
+        }
         const { sessionId } = request.payload
         try {
-          await ctx.workspaceRegistry.archiveSession(sessionId)
+          await registry.archiveSession(sessionId)
         } catch (error: unknown) {
           // Only the registry's unknown-session rejection is the business
           // code; storage/durability failures propagate as internal errors.
@@ -2816,7 +2894,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             details: { sessionId },
           })
         }
-        return ok(request, { archivedSessionIds: [...ctx.workspaceRegistry.archivedSessionIds] })
+        return ok(request, { archivedSessionIds: [...registry.archivedSessionIds] })
       },
     },
 
@@ -2824,23 +2902,30 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       describe(request) {
         // TODO: version should read apps/cli's package.json; placeholder for now.
         const selection = defaults.defaultModelSelection()
+        // Product-safe hosts do not advertise a project directory or the
+        // account home. The handshake still needs this method; the fields
+        // stay schema-shaped without leaking host paths.
         return Promise.resolve(ok(request, {
           version: '0.0.1',
-          // Same source as session.create's fallback: the UI's default project
-          // must match where an unspecified-cwd session actually lands.
-          cwd: defaults.cwd,
-          // Read live for the same reason: this is what the NEXT session will
-          // start from, so a saved default has to be what it reports.
+          cwd: requireWorkspace ? defaults.cwd : '',
           provider: selection.provider,
           model: selection.model,
           attachedSessions: ctx.agents.list().length,
-          home: homedir(),
-          canOpenPath: canOpenPaths(),
+          home: requireWorkspace ? homedir() : '',
+          canOpenPath: requireWorkspace ? canOpenPaths() : false,
         }))
       },
 
       async pickDirectory(request, signal) {
-        const capability = ctx.directoryPicker.capability()
+        const picker = ctx.get('directoryPicker')
+        if (picker === undefined) {
+          return err(request, {
+            code: 'directory-picker-unavailable',
+            message: 'directory picker is not composed on this host',
+            details: { capability: 'absent' },
+          })
+        }
+        const capability = picker.capability()
         if (capability.kind !== 'native') {
           return err(request, {
             code: 'directory-picker-unavailable',
@@ -2868,7 +2953,15 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async listDirectory(request, signal) {
-        const capability = ctx.directoryPicker.capability()
+        const picker = ctx.get('directoryPicker')
+        if (picker === undefined) {
+          return err(request, {
+            code: 'directory-picker-unavailable',
+            message: 'directory picker is not composed on this host',
+            details: { capability: 'absent' },
+          })
+        }
+        const capability = picker.capability()
         if (capability.kind !== 'browse') {
           return err(request, {
             code: 'directory-picker-unavailable',
@@ -2891,7 +2984,15 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async createDirectory(request) {
-        const capability = ctx.directoryPicker.capability()
+        const picker = ctx.get('directoryPicker')
+        if (picker === undefined) {
+          return err(request, {
+            code: 'directory-picker-unavailable',
+            message: 'directory picker is not composed on this host',
+            details: { capability: 'absent' },
+          })
+        }
+        const capability = picker.capability()
         if (capability.kind !== 'browse') {
           return err(request, {
             code: 'directory-picker-unavailable',
@@ -2907,6 +3008,13 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async openPath(request, signal) {
+        if (!requireWorkspace) {
+          return err(request, {
+            code: 'internal',
+            message: 'host.openPath is not available on this host',
+            details: {},
+          })
+        }
         return openPath(request, request.payload.path, signal)
       },
     },
@@ -3431,7 +3539,8 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
 
       host(_request, signal) {
         const queue = new FrameQueue<RpcRequest<HostFrame>>()
-        const committedWorkspaces = ctx.workspaceRegistry.list()
+        const registry = ctx.get('workspaceRegistry')
+        const committedWorkspaces = registry?.list() ?? []
         const committedWorkspaceIds = new Set(
           committedWorkspaces.map(workspace => String(workspace.id)),
         )
@@ -3439,7 +3548,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         // Frame-dedup baseline, same posture as committedWorkspaceIds: the
         // stream opens against the current set; workspace.list re-baselines
         // reconnecting clients, so only later changes need frames.
-        let archivedSessionIds = ctx.workspaceRegistry.archivedSessionIds
+        let archivedSessionIds = registry?.archivedSessionIds ?? []
         const disposers = [
           ctx.on('session/created', (session: Session) => {
             queue.push(frame({
@@ -3462,7 +3571,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             queue.push(frame({ type: 'host/agent-error', sessionId: agent.id, message: errorChain(error) }))
           }),
           ctx.on('domain/changed', (change) => {
-            if (change.domain !== 'workspace') return
+            if (change.domain !== 'workspace' || registry === undefined) return
             if (change.table === '') {
               if (change.operation !== 'put') return
               const state = workspaceDomainState.parse(change.value)
@@ -3471,7 +3580,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
                 && state.workspaceIds.some((workspaceId, index) => workspaceId !== committedWorkspaceOrder[index])
               for (const workspaceId of state.workspaceIds) {
                 if (committedWorkspaceIds.has(workspaceId)) continue
-                const workspace = ctx.workspaceRegistry.get(workspaceId)
+                const workspace = registry.get(workspaceId)
                 if (workspace === undefined) {
                   throw new Error(`committed workspace registry references missing workspace "${workspaceId}"`)
                 }

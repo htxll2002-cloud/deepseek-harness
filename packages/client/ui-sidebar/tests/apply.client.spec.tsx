@@ -11,7 +11,7 @@ async function bench(declare = true) {
   await ctx.plugin(SlotRegistry).await()
   const layout = { toggleSidebar: vi.fn() }
   const workspaces = { startSession: vi.fn() }
-  const sessions = { open: vi.fn(), clear: vi.fn() }
+  const sessions = { open: vi.fn(), clear: vi.fn(), create: vi.fn(async () => 'session-1') }
   ctx.provide('layout', layout)
   ctx.provide('sessions', sessions as never)
   ctx.provide('workspaces', workspaces as never)
@@ -44,13 +44,28 @@ describe('ui-sidebar apply', () => {
     expect(b.slots.entries('sidebar')[0]!.locale).toBe('sidebar')
     const injected = (b.slots.entries('sidebar')[0]!.inject as () => SidebarRootInjected)()
     expect(Object.keys(injected)).toEqual(['startSession', 'toggleSidebar'])
-    // Both arms delegate to the runtime's shared New Session action.
+    // An explicit Workspace still delegates to the runtime owner.
     injected.startSession('workspace' as never)
     expect(b.workspaces.startSession).toHaveBeenCalledWith('workspace')
+    // No Workspace occupant: New Session creates a directory-free session.
     injected.startSession()
-    expect(b.workspaces.startSession).toHaveBeenLastCalledWith(undefined)
+    await vi.waitFor(() => {
+      expect(b.sessions.create).toHaveBeenCalledWith({})
+    })
+    expect(b.sessions.open).toHaveBeenCalledWith('session-1')
+    expect(b.workspaces.startSession).toHaveBeenCalledTimes(1)
     injected.toggleSidebar()
     expect(b.layout.toggleSidebar).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the coding New Session path when a workspace occupant is composed', async () => {
+    const b = await bench()
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    b.slots.register({ name: 'sidebar.workspaces' } as never, () => null)
+    const injected = (b.slots.entries('sidebar')[0]!.inject as () => SidebarRootInjected)()
+    injected.startSession()
+    expect(b.workspaces.startSession).toHaveBeenCalledWith(undefined)
+    expect(b.sessions.create).not.toHaveBeenCalled()
   })
 
   it('fails when no live owner declared the sidebar slot', async () => {

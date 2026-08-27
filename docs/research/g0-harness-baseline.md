@@ -80,6 +80,8 @@ Source-verified constraints for a commercial fork:
 
 Product UI must ship its own name, logo, and `ui-brand-official` replacement. Official brand package `@deepseek-ai/dsh-client-ui-brand-official` is mounted in the shipped web-app bundle.
 
+`@deepseek-ai/dsh-product-safe` is an internal workspace package name inherited for monorepo compatibility during early development. It is private and must never be published or represented as an official DeepSeek package. Product naming / package namespace will be revisited during branding/productization.
+
 ## 5. Node, pnpm, lockfile, CI
 
 | Requirement | Value |

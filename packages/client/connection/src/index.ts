@@ -59,11 +59,18 @@ export interface ConnectionConfig {
   trustedHosts?: string[]
   /** Maximum buffered JSON body for every `/api` request. Default: 300 MiB. */
   maxRequestBodyBytes?: number
+  /**
+   * When set, `/api/<method>` requests whose method is not listed receive HTTP
+   * 404 before the API gateway. Official web leaves this unset so the full
+   * surface remains. Product-safe compositions use it as a route allowlist.
+   */
+  allowedMethods?: string[]
 }
 
 export const Config: z<ConnectionConfig> = z.object({
   trustedHosts: z.array(String).default([]),
   maxRequestBodyBytes: z.natural().min(1).default(DEFAULT_MAX_REQUEST_BODY_BYTES),
+  allowedMethods: z.array(String),
 })
 
 /**
@@ -131,6 +138,7 @@ export function apply(ctx: Context, config?: ConnectionConfig): void {
   // The Loader resolves schema defaults; hand-built test contexts may pass none.
   const trustedHosts = config?.trustedHosts ?? []
   const maxRequestBodyBytes = config?.maxRequestBodyBytes ?? DEFAULT_MAX_REQUEST_BODY_BYTES
+  const allowedMethods = config?.allowedMethods
   // Config boundary: a malformed entry fails the load loudly here rather than
   // silently authorizing its hostname prefix at request time.
   for (const entry of trustedHosts) assertTrustedAuthority(entry)
@@ -142,6 +150,11 @@ export function apply(ctx: Context, config?: ConnectionConfig): void {
       const method = pathname.startsWith(`${API_PATH}/`)
         ? pathname.slice(API_PATH.length + 1)
         : undefined
+      if (method !== undefined
+        && allowedMethods !== undefined
+        && !allowedMethods.includes(method)) {
+        return new Response('not found', { status: 404 })
+      }
       if (method !== undefined
         && PRIVILEGED_METHODS.has(method)
         && !isTrustedApiRequest(request, [])) {

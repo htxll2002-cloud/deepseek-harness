@@ -1,5 +1,7 @@
 # Harness Tool Inventory (M0 BEFORE)
 
+English | [中文](harness-tool-inventory.zh.md)
+
 **Commit:** `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
 **Source:** `defineTool({ name })` in `packages/**/src` plus preset wiring.
 **Record only. M0 does not remove tools.**

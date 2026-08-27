@@ -1,0 +1,201 @@
+# Standalone product-safe profile patch. This is NOT dsh-base + disable:
+# coding packages are absent from the insert list so they never enter the
+# product-safe runtime dependency graph. Official coding packages remain in
+# the monorepo for upstream compare/upgrade.
+#
+# Row order carries no load semantics. A patch replaces a targeted row's
+# whole config.
+
+- insert:
+    - id: timer
+      name: '@deepseek-ai/cordis-plugin-timer'
+
+    - id: llm
+      name: '@deepseek-ai/dsh-llm'
+
+    - id: session
+      name: '@deepseek-ai/dsh-session'
+
+    - id: typert
+      name: '@deepseek-ai/dsh-typert-registry'
+
+    - id: typert-loader
+      name: '@deepseek-ai/dsh-typert-loader'
+
+    - id: typert-gateway
+      name: '@deepseek-ai/dsh-api-gateway'
+
+    - id: session-title
+      name: '@deepseek-ai/dsh-session-title'
+      config:
+        fallbackMaxWords: 5
+        fallbackMaxBytes: 40
+        maxTitleBytes: 80
+
+    - id: user-questions
+      name: '@deepseek-ai/dsh-user-questions'
+
+    - id: agent
+      name: '@deepseek-ai/dsh-agent'
+
+    - id: agent-default-model
+      name: '@deepseek-ai/dsh-agent-default-model'
+      config:
+        provider: product-safe-mock
+        model: product-safe-mock
+
+    - id: llm-retry
+      name: '@deepseek-ai/dsh-llm-retry'
+
+    - id: settings
+      name: '@deepseek-ai/dsh-settings-file'
+
+    - id: session-persistence-jsonl
+      name: '@deepseek-ai/dsh-session-persistence-jsonl'
+      config:
+        root: !!js dshHomePath('sessions')
+
+    - id: attachment-local
+      name: '@deepseek-ai/dsh-attachment-local'
+
+    - id: session-query-sqlite
+      name: '@deepseek-ai/dsh-session-query-sqlite'
+      config:
+        path: ':memory:'
+        openAt: never
+
+    - id: session-projection
+      name: '@deepseek-ai/dsh-session-projection'
+
+    - id: commands
+      name: '@deepseek-ai/dsh-commands'
+
+    # Registry only. Delegation tools and spawn backends stay unmounted.
+    - id: subagent
+      name: '@deepseek-ai/dsh-subagent'
+
+    - id: timeout-policy
+      name: '@deepseek-ai/dsh-tool-call-timeout-policy'
+
+    - id: spill-local
+      name: '@deepseek-ai/dsh-spill-local'
+
+    - id: spill-policy
+      name: '@deepseek-ai/dsh-spill-policy'
+      config:
+        maxInlineBytes: 50000
+
+    - id: session-checkpoint-policy
+      name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+    - id: tools
+      name: '@deepseek-ai/dsh-tools'
+
+    - id: system-prompt
+      name: '@deepseek-ai/dsh-system-prompt'
+      config:
+        persona: Safe Generic Product Agent
+
+    - id: agent-loop
+      name: '@deepseek-ai/dsh-agent-loop'
+      config:
+        agents: []
+
+    - id: product-safe-llm-mock
+      name: '@deepseek-ai/dsh-product-safe/llm-mock'
+
+    - id: api-gateway
+      name: '@deepseek-ai/dsh-host-apiproxy'
+      config:
+        requireWorkspace: false
+
+    - id: web-startup
+      name: '@deepseek-ai/dsh-product-safe/startup'
+
+    - id: webserver
+      name: '@deepseek-ai/dsh-host-webserver'
+      inject: [webStartup]
+      config:
+        host: 127.0.0.1
+        port: !!js ctx.webStartup.port ?? 3080
+
+    - id: web-runtime
+      name: '@deepseek-ai/dsh-product-safe'
+      inject: [webStartup]
+      config:
+        printUrl: true
+        surfaceContext: false
+        trustedHosts: !!js ctx.webStartup.trustedHosts
+
+    - id: modules
+      name: '@deepseek-ai/dsh-client-modules'
+
+    - id: connection
+      name: '@deepseek-ai/dsh-client-connection'
+      inject: [webRuntime]
+      config:
+        trustedHosts: !!js ctx.webRuntime.trustedHosts
+        allowedMethods:
+          - session.list
+          - session.search
+          - session.create
+          - session.history
+          - session.models
+          - session.selectModel
+          - session.rename
+          - session.fork
+          - session.prompt
+          - session.attachment
+          - session.updateQueue
+          - session.cancel
+          - llm.providers
+          - llm.models
+          - agentPreset.list
+          - agentPreset.select
+          - settings.describe
+          - host.describe
+
+    - id: api-remotes
+      name: '@deepseek-ai/dsh-api-remotes'
+
+    - id: client-runtime
+      name: '@deepseek-ai/dsh-client-runtime'
+
+    - id: ui-theme
+      name: '@deepseek-ai/dsh-client-ui-theme'
+
+    - id: locale
+      name: '@deepseek-ai/dsh-client-locale'
+
+    - id: ui-layout
+      name: '@deepseek-ai/dsh-client-ui-layout'
+
+    - id: ui-renderer
+      name: '@deepseek-ai/dsh-client-ui-renderer'
+
+    - id: ui-sidebar
+      name: '@deepseek-ai/dsh-client-ui-sidebar'
+
+    - id: ui-settings
+      name: '@deepseek-ai/dsh-client-ui-settings'
+
+    - id: ui-conversation
+      name: '@deepseek-ai/dsh-client-ui-conversation'
+
+    - id: ui-brand-official
+      name: '@deepseek-ai/dsh-client-ui-brand-official'
+
+    - id: ui-attachment
+      name: '@deepseek-ai/dsh-client-ui-attachment'
+
+    - id: ui-tool
+      name: '@deepseek-ai/dsh-client-ui-tool'
+
+    - id: ui-user-questions
+      name: '@deepseek-ai/dsh-client-ui-user-questions'
+
+    - id: agent-presets
+      name: '@deepseek-ai/dsh-agent-presets'
+      config:
+        default: product-safe
+        includeUserRoot: false

@@ -75,7 +75,7 @@ function fakeResponse(): { response: ServerResponse; state: { status?: number; b
   return { response, state }
 }
 
-async function mounted(config?: { trustedHosts?: string[] }): Promise<{
+async function mounted(config?: { trustedHosts?: string[]; allowedMethods?: string[] }): Promise<{
   routes: WebRoute[]
   upgrades: WebUpgradeRoute[]
   dispose: () => Promise<void>
@@ -129,6 +129,52 @@ describe('connection node half', () => {
     await dispose()
     expect(routes).toHaveLength(0)
     expect(upgrades).toHaveLength(0)
+  })
+
+  it('404s methods outside an explicit allowlist before the API gateway', async () => {
+    const ctx = new Context()
+    const routes: WebRoute[] = []
+    ctx.provide('webServer', fakeHttpServer(routes, []) as WebServer)
+    ctx.provide('apiProxy', {
+      sessions: {
+        list: async (req: { rpcId: string }) => ({
+          rpcId: req.rpcId,
+          result: { ok: true, value: { items: [] } },
+        }),
+      },
+    } as unknown as ApiProxy)
+    const fiber = ctx.plugin({ inject: [...inject], apply }, {
+      allowedMethods: ['session.list', 'host.describe'],
+    })
+    await fiber.await()
+    const allowed = fakeResponse()
+    await routes[0]!.handler(
+      fakePost({ host: '127.0.0.1:3080' }, `${API_PATH}/session.list`, {
+        type: 'client-request',
+        rpcId: RpcId('allowlist-list'),
+        method: 'session.list',
+        payload: {},
+      }),
+      allowed.response,
+    )
+    expect(allowed.state.status).toBe(200)
+    expect(JSON.parse(String(allowed.state.body))).toMatchObject({
+      type: 'server-response',
+      result: { ok: true, value: { items: [] } },
+    })
+    const denied = fakeResponse()
+    await routes[0]!.handler(
+      fakePost({ host: '127.0.0.1:3080' }, `${API_PATH}/workspace.list`, {
+        type: 'client-request',
+        rpcId: RpcId('allowlist-denied'),
+        method: 'workspace.list',
+        payload: {},
+      }),
+      denied.response,
+    )
+    expect(denied.state.status).toBe(404)
+    expect(denied.state.body).toBe('not found')
+    await fiber.dispose()
   })
 
   it('requires WebSocket upgrade for network GETs to either event path', async () => {

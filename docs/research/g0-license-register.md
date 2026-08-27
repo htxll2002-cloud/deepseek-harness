@@ -28,6 +28,7 @@ No matrix item is `NOASSERTION` or unlicensed.
 | Subject | Status | Action |
 |---|---|---|
 | DeepSeek trademark / official UI brand package | Restricted | Own product name; replace `ui-brand-official` |
+| `@deepseek-ai/dsh-product-safe` workspace name | Internal only; `private: true`; not an official DeepSeek package | Never publish; revisit namespace during branding |
 | Provider ToS (Google Gemini, OpenAI, Ark/Seedream, DashScope) | **Unknown / not reviewed** | Required before M6 real provider |
 | 中转站 / OpenAI-compatible relays | **Unknown** | Forbidden as user-defined endpoints; any official relay needs its own contract |
 | `dsh-image-gen` README screenshots / preview images | Not copied | Do not reuse promotional images without checking |
