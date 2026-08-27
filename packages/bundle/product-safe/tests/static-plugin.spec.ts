@@ -1,5 +1,5 @@
 /**
- * Static platform plugin: product_safe_echo is loadable from the preset.
+ * Static platform plugin: generate_image is loadable from the Design preset.
  * Users cannot add a new tool through Host HTTP.
  */
 
@@ -8,9 +8,11 @@ import {
   executeNamedTool,
   hostRpc,
   launchProductSafe,
-  PRODUCT_SAFE_ECHO_NAME,
   type ProductSafeWorld,
 } from './harness.ts'
+
+const GENERATE = 'generate_image'
+const EDIT = 'edit_image'
 
 describe('static platform plugin', () => {
   let world: ProductSafeWorld | undefined
@@ -19,20 +21,23 @@ describe('static platform plugin', () => {
     world = undefined
   })
 
-  it('runs the echo fixture through the mock LLM and denies dynamic install', async () => {
+  it('runs generate_image through the mock LLM and denies dynamic install', async () => {
     world = await launchProductSafe()
     const created = await hostRpc(world.baseUrl, 'session.create', {})
     const { sessionId } = (created.body as { result: { value: { sessionId: string } } }).result.value
     const agent = world.ctx.agents.get(sessionId as never)
     expect(agent).toBeDefined()
 
-    const echo = await executeNamedTool(world.ctx, PRODUCT_SAFE_ECHO_NAME, { text: 'ping' }, agent)
-    expect(echo.isError).toBe(false)
+    const generated = await executeNamedTool(world.ctx, GENERATE, {
+      prompt: 'ping chair',
+      count: 1,
+    }, agent)
+    expect(generated.isError).toBe(false)
 
     const prompted = await hostRpc(world.baseUrl, 'session.prompt', {
       sessionId,
       mode: 'queue',
-      content: [{ type: 'text', text: 'echo: ping' }],
+      content: [{ type: 'text', text: '生成两张咖啡厅里的椅子' }],
     })
     expect(prompted.status).toBe(200)
     await agent?.whenIdle()
@@ -40,15 +45,17 @@ describe('static platform plugin', () => {
     const names = events
       .filter(event => event.type === 'tool/call' || event.type === 'tool/result')
       .map(event => (event.data as { name?: string }).name)
-    expect(names).toContain(PRODUCT_SAFE_ECHO_NAME)
+    expect(names).toContain(GENERATE)
 
     const install = await hostRpc(world.baseUrl, 'plugin.install', {
       package: 'malicious-shell-plugin',
     })
     expect(install.status).toBe(404)
     const after = new Set(world.ctx.tools.schemas(agent).map(schema => schema.name))
-    expect([...after].every(name => name === PRODUCT_SAFE_ECHO_NAME || !name.includes('malicious'))).toBe(true)
-    expect(after.size).toBe(1)
-    expect(after.has(PRODUCT_SAFE_ECHO_NAME)).toBe(true)
+    expect(after.size).toBe(2)
+    expect(after.has(GENERATE)).toBe(true)
+    expect(after.has(EDIT)).toBe(true)
+    expect(after.has('product_safe_echo')).toBe(false)
+    expect([...after].some(name => name.includes('malicious'))).toBe(false)
   })
 })

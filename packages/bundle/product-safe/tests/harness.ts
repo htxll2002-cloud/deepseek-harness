@@ -383,6 +383,51 @@ export async function executeNamedTool(
   })
 }
 
+/** Collect image attachment ids from a tool-result content tree. */
+export function imageAttachmentIdsFromContent(content: unknown): string[] {
+  const ids: string[] = []
+  collectImageIds(content, ids)
+  return ids
+}
+
+function collectImageIds(content: unknown, ids: string[]): void {
+  if (!Array.isArray(content)) return
+  for (const value of content) {
+    if (typeof value !== 'object' || value === null) continue
+    const block = value as { type?: unknown; attachment?: { attachmentId?: unknown }; content?: unknown }
+    if (block.type === 'image' && typeof block.attachment?.attachmentId === 'string') {
+      ids.push(block.attachment.attachmentId)
+    }
+    if (block.type === 'tool-result') collectImageIds(block.content, ids)
+  }
+}
+
+/** Image attachment ids recorded on tool/result events. */
+export function sessionImageAttachmentIds(session: { events: Iterable<{ type: string; data: unknown }> }): string[] {
+  const ids: string[] = []
+  for (const event of session.events) {
+    if (event.type !== 'tool/result') continue
+    const data = event.data as { message?: { content?: unknown } }
+    ids.push(...imageAttachmentIdsFromContent(data.message?.content))
+  }
+  return ids
+}
+
+/** Parsed arguments for every tool/call with this name. */
+export function sessionToolCallArgs(
+  session: { events: Iterable<{ type: string; data: unknown }> },
+  name: string,
+): unknown[] {
+  const args: unknown[] = []
+  for (const event of session.events) {
+    if (event.type !== 'tool/call') continue
+    const data = event.data as { name?: string; arguments?: string }
+    if (data.name !== name || data.arguments === undefined) continue
+    args.push(JSON.parse(data.arguments) as unknown)
+  }
+  return args
+}
+
 /** Wait until the session agent is idle after a prompt. */
 export async function whenAgentIdle(ctx: Context, sessionId: SessionId, timeoutMs = 10_000): Promise<void> {
   const agent = ctx.agents.get(sessionId)

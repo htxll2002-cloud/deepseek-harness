@@ -1,13 +1,13 @@
-# Product-safe agent plane. Identity plus the M1 echo fixture only.
+# Product-safe Design image spike. generate_image and edit_image only.
 # Coding tools, terminal, filesystem, skills, and model-written extensions
-# are not mounted.
+# are not mounted. product_safe_echo stays a remountable test fixture.
 
 - id: persona
   name: '@deepseek-ai/dsh-persona'
   config:
-    text: Safe Generic Product Agent
+    text: Design Image Spike Agent. Use generate_image to create images and edit_image with an explicit source_attachment_id to edit a selected image. Do not choose a provider.
     complete: true
     includeRuntimeContext: false
 
-- id: product-safe-echo
-  name: '@deepseek-ai/dsh-product-safe/echo'
+- id: design-image-tools
+  name: '@deepseek-ai/dsh-image-tools'

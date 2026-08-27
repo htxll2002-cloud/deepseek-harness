@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/m2/dsh-image-gen-transplant-ledger.md
+dsh-image-gen-transplant-ledger.md: a2945b691c57866b5fb0ce0629b63bf559dc3b33
+dsh-image-gen-transplant-ledger.zh.md: 5d8fdeb24eb0ff6d974b1837852e4e2da5a73e6a

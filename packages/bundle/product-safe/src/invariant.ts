@@ -13,6 +13,9 @@ export const name = 'product-safe-bundle-invariant'
 /** Service required before the companion can register. */
 export const inject = ['invariants']
 
+// No runtime invariant: the package is a static patch-list carrier plus
+// product-safe adapters; tool and slot effects belong to the first-party
+// packages it composes, and bind/allowlist checks live in tests.
 const install: InvariantInstaller = () => {}
 
 /**

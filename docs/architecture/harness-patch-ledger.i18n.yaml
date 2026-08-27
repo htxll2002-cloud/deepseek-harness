@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/architecture/harness-patch-ledger.md
-harness-patch-ledger.md: 3d7728f6c888745ea01c39401bd07dea6a19f957
-harness-patch-ledger.zh.md: 50cb0364d4ebc50857c9f7e54dd2757c75362953
+harness-patch-ledger.md: 6569e758eef7019e2000b39b0465a7e8a0881a50
+harness-patch-ledger.zh.md: 69cfff137052eccaa584530f52c99cf2442a9c8f

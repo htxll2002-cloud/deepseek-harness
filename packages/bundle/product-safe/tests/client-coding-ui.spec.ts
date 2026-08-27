@@ -21,6 +21,7 @@ describe('client coding UI absence', () => {
     expect(ids.has('ui-conversation')).toBe(true)
     expect(ids.has('ui-sidebar')).toBe(true)
     expect(ids.has('ui-tool')).toBe(true)
+    expect(ids.has('ui-design-image')).toBe(true)
     expect(ids.has('ui-layout')).toBe(true)
     expect(ids.has('ui-renderer')).toBe(true)
     expect(ids.has('client-runtime')).toBe(true)
