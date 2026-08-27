@@ -34,6 +34,9 @@ import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 /** Shipped agent-preset root: beside this app's own config, in both source and built layouts. */
 const SHIPPED_PRESET_ROOT = fileURLToPath(new URL('../config/agent-presets/', import.meta.url))
 
+/** Product-safe roster: only the Safe Generic Product Agent, never coding presets. */
+const PRODUCT_SAFE_PRESET_ROOT = fileURLToPath(new URL('../config/product-safe-presets/', import.meta.url))
+
 import { DSH_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@deepseek-ai/dsh-launch-environment'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import { createProcessShutdown, type ProcessShutdown } from './process-shutdown.ts'
@@ -157,13 +160,22 @@ function composeProfile(
   // The writable root the roster appends is `dsh-agent-presets`' own, so a
   // launcher that never reaches this patch still finds a person's presets.
   if (rows.has('agent-presets')) {
-    composedOverlays.push({
-      id: 'agent-presets',
-      config: {
-        ...(rows.get('agent-presets')?.config ?? {}) as Record<string, unknown>,
-        roots: [{ path: SHIPPED_PRESET_ROOT, trust: 'system' }],
-      },
-    })
+    const existing = (rows.get('agent-presets')?.config ?? {}) as Record<string, unknown>
+    const existingRoots = existing.roots
+    // A bundle that already named roots owns the roster. Official web does
+    // not; product-safe names its own directory through this overlay.
+    if (!Array.isArray(existingRoots) || existingRoots.length === 0) {
+      composedOverlays.push({
+        id: 'agent-presets',
+        config: {
+          ...existing,
+          roots: [{
+            path: name === 'product-safe' ? PRODUCT_SAFE_PRESET_ROOT : SHIPPED_PRESET_ROOT,
+            trust: 'system',
+          }],
+        },
+      })
+    }
   }
   const telemetryPatch = resolveTelemetryPatch(process.env.DSH_TELEMETRY_DISABLED, rows.has(TELEMETRY_ROW_ID))
   if (telemetryPatch !== undefined) composedOverlays.push(telemetryPatch)

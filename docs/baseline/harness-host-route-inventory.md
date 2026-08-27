@@ -1,5 +1,7 @@
 # Harness Host Route Inventory (M0 BEFORE)
 
+English | [中文](harness-host-route-inventory.zh.md)
+
 **Commit:** `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
 **Default bind:** `127.0.0.1:3080`
 **Auth:** none. Host/Origin trust fence only.

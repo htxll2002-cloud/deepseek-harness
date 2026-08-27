@@ -14,7 +14,8 @@ export type ConversationRootProps = ConversationSlotProps
 
 export function ConversationRoot({
   sessionId, useSession, useSessions, useWorkspaces, useInput, useComposerBlock,
-  renderSlot, renderSlotChain, selectWorkspace, t,
+  useWorkspaceOccupied, renderSlot, renderSlotChain, selectWorkspace,
+  createWorkspaceFreeSession, t,
 }: ConversationRootProps) {
   const openState = useSession(s => s.openState)
   const composerPhase = useSession(s => s.composerPhase)
@@ -27,6 +28,10 @@ export function ConversationRoot({
   // A plugin this package cannot import (ui-model-selection) says this session cannot
   // send; its reason is already localized by whoever raised it.
   const composerBlock = useComposerBlock(block => block)
+  const workspaceOccupied = useWorkspaceOccupied(occupied => occupied)
+  const sessionsPhase = useSessions(s => s.phase)
+  const currentSessionId = useSessions(s => s.current)
+  const creatingWorkspaceFree = useRef(false)
 
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pendingWorkspaceId, setPendingWorkspaceId] = useState<WorkspaceId | undefined>()
@@ -65,6 +70,18 @@ export function ConversationRoot({
     }
   }, [pendingWorkspaceId, sessionWorkspace?.workspaceId, workspaces.phase, pendingWorkspace])
 
+  // Capability-driven: when no plugin occupies the workspace picker hole,
+  // Session creation does not wait for a directory. Official web always
+  // mounts ui-workspace, so this watcher is a no-op there.
+  useEffect(() => {
+    if (workspaceOccupied || sessionId !== undefined || sessionsPhase !== 'ready'
+      || currentSessionId !== undefined || creatingWorkspaceFree.current) return
+    creatingWorkspaceFree.current = true
+    void createWorkspaceFreeSession().finally(() => {
+      creatingWorkspaceFree.current = false
+    })
+  }, [workspaceOccupied, sessionId, sessionsPhase, currentSessionId, createWorkspaceFreeSession])
+
   // While a session is still replaying (loading + blank) the hero/docked
   // choice is unknowable — render the composer hidden instead of flashing
   // the centered hero and snapping to the docked bar (or vice versa).
@@ -97,7 +114,11 @@ export function ConversationRoot({
           ? undefined
           : workspaceLabel(cwd)))
 
-  const heroWorkspaceRow = (
+  // Build this row only when a plugin occupies the hole. `renderSlot` is a
+  // function call inside the JSX, so assigning the element unconditionally
+  // would instantiate the picker even when the product-safe profile leaves
+  // the hole empty.
+  const heroWorkspaceRow = !workspaceOccupied ? null : (
     <div className={css.heroWorkspaceRow}>
       <WorkspaceChip
         buttonRef={pickerAnchor}
@@ -128,26 +149,35 @@ export function ConversationRoot({
   // blank session whose workspace vanished (deleted from the sidebar). The
   // bar is ONE session-maybe slot rendered unconditionally — inert is a prop,
   // not a different tree, so the textarea DOM survives the transition.
-  const inert = sessionId === undefined || (hero && chipTitle === undefined)
+  const inert = workspaceOccupied
+    ? sessionId === undefined || (hero && chipTitle === undefined)
+    : sessionId === undefined
   // A raised block is the same inert posture with the blocker's own reason:
   // one disabled textarea, never a second tree. The no-workspace state wins
   // when both hold — picking a workspace is the earlier prerequisite.
   const blocked = !inert && composerBlock !== undefined
-  const inputBar = renderSlot('conversation.composer.bar', {
-    variant: hero ? 'hero' : 'composer',
-    ...(inert
+  const composerBarOwner = inert
+    ? workspaceOccupied
       ? {
         disabled: true,
         placeholder: t('placeholder.workspace'),
         workspacePickerOpen: pickerOpen,
         onRequestWorkspace: () => { setPickerOpen(true) },
       }
-      : blocked
-        // `blocked`, not `disabled`: the bar refuses input either way, but a
-        // block keeps the model seat live because choosing a model is how the
-        // user clears it.
-        ? { blocked: composerBlock, placeholder: composerBlock.reason }
-        : hero ? { placeholder: t('placeholder.hero') } : {}),
+      : {
+        // No Workspace occupant: wait for the workspace-free session, do
+        // not turn the textarea into a directory-picker trigger.
+        disabled: true,
+      }
+    : blocked
+      // `blocked`, not `disabled`: the bar refuses input either way, but a
+      // block keeps the model seat live because choosing a model is how the
+      // user clears it.
+      ? { blocked: composerBlock, placeholder: composerBlock.reason }
+      : hero ? { placeholder: t('placeholder.hero') } : {}
+  const inputBar = renderSlot('conversation.composer.bar', {
+    variant: hero ? 'hero' : 'composer',
+    ...composerBarOwner,
     overlay: renderSlot('conversation.input.overlay', {}),
     leftItems: zone === undefined ? null : renderSlot('conversation.input.left', zone),
     rightItems: zone === undefined ? null : renderSlot('conversation.input.right', zone),
