@@ -8,7 +8,7 @@
 
 | File | Asserts |
 |---|---|
-| `packages/bundle/product-safe/tests/composition.spec.ts` | Patch 没有禁止的行 id；package.json 没有 coding 依赖；允许列表匹配 `PRODUCT_SAFE_ALLOWED_METHODS`；`requireWorkspace: false` |
+| `packages/bundle/product-safe/tests/composition.spec.ts` | Patch 没有禁止的行 id；package.json 没有 coding 依赖；允许列表匹配 `PRODUCT_SAFE_ALLOWED_METHODS`；`requireWorkspace: false`；包是 private，不是官方发布目标 |
 | `packages/bundle/product-safe/tests/client-coding-ui.spec.ts` | Coding `ui-*` 行缺失；conversation / sidebar / tool / streaming 行存在 |
 | `packages/bundle/product-safe/tests/product-safe-tool-deny.spec.ts` | 对 M0 线路名与别名的敌意 `tools.execute` → 在 host 上以及会话组合后未注册 / `UNKNOWN_TOOL`；echo 仅在组合后出现 |
 | `packages/bundle/product-safe/tests/product-safe-host-deny.spec.ts` | 对 workspace / directory / plugin / credentials / settings-mutate / skill / goal / subagent / discoverModels 的 HTTP POST → **404**；`session.list` 与剥离路径的 `host.describe` 成功 |

@@ -2,12 +2,10 @@
   "name": "@deepseek-ai/dsh-product-safe",
   "description": "Standalone product-safe DeepSeek Harness profile: conversation shell without coding, shell, filesystem, or workspace host capabilities",
   "version": "0.1.1-rc.2",
-  "publishConfig": {
-    "access": "public"
-  },
+  "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/htxll2002-cloud/deepseek-harness.git",
     "directory": "packages/bundle/product-safe"
   },
   "type": "module",

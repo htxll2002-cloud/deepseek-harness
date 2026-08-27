@@ -10,7 +10,7 @@ Durable copy of the M1 acceptance record. Work lives on `product/m1-safe-harness
 
 ## Profile
 
-- Product-safe profile: `@deepseek-ai/dsh-product-safe` / `dsh --profile product-safe` / `dsh product-safe`
+- Product-safe profile: `@deepseek-ai/dsh-product-safe` / `dsh --profile product-safe` / `dsh product-safe` (internal workspace name; `private: true`; not an official DeepSeek publish target)
 - Product-safe preset: `product-safe` (Safe Generic Product Agent)
 - Session without workspace: PASS (`requireWorkspace: false`, no `/tmp` project)
 - Tool registry after session compose: total 1 (`product_safe_echo`); dangerous 0

@@ -21,6 +21,8 @@ M1 therefore ships a **standalone** bundle:
 
 `composeProfile` overlays `agent-presets.roots` only when the bundle left `roots` empty. Official web is unchanged.
 
+`@deepseek-ai/dsh-product-safe` is an internal workspace package name inherited for monorepo compatibility during early development. It is private and must never be published or represented as an official DeepSeek package. Product naming and package namespace will be revisited during branding.
+
 ## KEEP
 
 Core runtime, agent loop, session, conversation, message/events, tool registry and execution protocol, streaming, client object layer, slots, tool-view infrastructure, attachment infrastructure, LLM abstraction, settings-file (describe only), empty commands registry, subagent **registry** (apiproxy still injects `subagents`), mock LLM, echo fixture.

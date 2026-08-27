@@ -10,7 +10,7 @@ M1 验收记录的持久副本。工作位于 `product/m1-safe-harness`。`stabl
 
 ## Profile
 
-- Product-safe profile: `@deepseek-ai/dsh-product-safe` / `dsh --profile product-safe` / `dsh product-safe`
+- Product-safe profile: `@deepseek-ai/dsh-product-safe` / `dsh --profile product-safe` / `dsh product-safe`（内部 workspace 名；`private: true`；不是官方 DeepSeek 发布目标）
 - Product-safe preset: `product-safe` (Safe Generic Product Agent)
 - Session without workspace: PASS (`requireWorkspace: false`，没有 `/tmp` 项目)
 - Tool registry after session compose: total 1 (`product_safe_echo`); dangerous 0

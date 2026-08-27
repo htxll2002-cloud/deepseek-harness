@@ -276,6 +276,13 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
       || manifest.repository.directory !== expectedDirectory) {
       errors.push(`${label}: published Landlock package repository must use ${repositoryUrl} with directory ${expectedDirectory} for trusted publishing`)
     }
+  } else if (releaseMemberDirectory.test(dir) && manifest.private === true) {
+    // Fork-internal workspace packages can live beside official release
+    // members. They must stay unpublished: npm refuses private packages, and
+    // publishConfig would undo that.
+    if (manifest.publishConfig !== undefined) {
+      errors.push(`${label}: private workspace package must omit publishConfig`)
+    }
   } else if (releaseMemberDirectory.test(dir)) {
     // Release members state that they are publishable: npm refuses a private
     // package, and the repository field is how a consumer finds the source of
@@ -287,9 +294,6 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     // public. A mixed scope is why no publish path passes `--access` — one flag
     // cannot serve both, so each packed manifest decides
     // ([rationale](../.agents/notes/implemented/process/2026-08-13-public-vendor-and-native-sequences.md)).
-    if (manifest.private === true) {
-      errors.push(`${label}: release member must not set "private": true`)
-    }
     if (manifest.publishConfig?.access !== 'public') {
       errors.push(`${label}: release member must set publishConfig.access to "public"`)
     }

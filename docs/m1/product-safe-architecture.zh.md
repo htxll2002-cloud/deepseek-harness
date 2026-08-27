@@ -21,6 +21,8 @@
 
 `composeProfile` 仅在组合包把 `roots` 留空时覆盖 `agent-presets.roots`。官方 web 不变。
 
+`@deepseek-ai/dsh-product-safe` 是早期开发为兼容 monorepo 而沿用的内部 workspace 包名。它是 private 的，不得发布，也不得被表述为官方 DeepSeek 包。产品命名与包命名空间会在 branding 阶段再决定。
+
 ## KEEP
 
 Core 运行时、agent loop、session、conversation、message/events、工具注册表与执行协议、streaming、客户端对象层、slots、tool-view 基础设施、attachment 基础设施、LLM 抽象、settings-file（仅 describe）、空 commands 注册表、subagent **registry**（apiproxy 仍注入 `subagents`）、mock LLM、echo 夹具。

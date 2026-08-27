@@ -21,7 +21,7 @@ git diff stable-base...HEAD
 | Category | Meaning |
 |---|---|
 | CONFIGURATION | Profile 模板、CLI 别名、允许列表、`requireWorkspace` 配置 |
-| NEW_BUNDLE | `@deepseek-ai/dsh-product-safe` |
+| NEW_BUNDLE | `@deepseek-ai/dsh-product-safe`（private 内部 workspace 包）|
 | NEW_PRESET | `product-safe` |
 | NEW_PRODUCT_COMPOSITION | 独立 patch + CLI preset 根覆盖 |
 | NEW_TEST | Product-safe 与能力测试 |

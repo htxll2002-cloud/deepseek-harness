@@ -44,6 +44,18 @@ describe('product-safe composition', () => {
     }
   })
 
+  it('is a private workspace package and is not an official DeepSeek publish target', () => {
+    const manifest = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
+      private?: boolean
+      publishConfig?: unknown
+      repository?: { url?: string }
+    }
+    expect(manifest.private).toBe(true)
+    expect(manifest.publishConfig).toBeUndefined()
+    expect(manifest.repository?.url).toBeDefined()
+    expect(manifest.repository?.url).not.toContain('github.com/deepseek-ai/deepseek-harness')
+  })
+
   it('forces loopback and cwd-less session create', () => {
     const rows = composeEntries([loadOverlayPatches('product-safe composition', PATCH)])
     const gateway = rows.find(row => row.id === 'api-gateway')

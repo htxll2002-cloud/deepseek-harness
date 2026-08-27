@@ -12,7 +12,7 @@ Status: implemented
 
 ## Decision
 
-Product-safe 是**独立**的 profile 组合包 `@deepseek-ai/dsh-product-safe`，而不是 `dsh-base` 再加禁用。`PROFILE_TEMPLATES['product-safe']` 只点名该组合包。CLI 别名 `dsh product-safe` 与 `dsh web` 对称。随附名录是 `apps/cli/config/product-safe-presets/`，其中只有一个 `product-safe` preset（Safe Generic Product Agent）。`includeUserRoot` 为 false。
+Product-safe 是**独立**的 profile 组合包 `@deepseek-ai/dsh-product-safe`，而不是 `dsh-base` 再加禁用。该包名是为兼容 monorepo 而沿用的；清单为 `private: true`，不得发布，也不得被表述为官方 DeepSeek 包。`PROFILE_TEMPLATES['product-safe']` 只点名该组合包。CLI 别名 `dsh product-safe` 与 `dsh web` 对称。随附名录是 `apps/cli/config/product-safe-presets/`，其中只有一个 `product-safe` preset（Safe Generic Product Agent）。`includeUserRoot` 为 false。
 
 Coding 包仍留在 monorepo 中，也仍在官方 `dsh web` 的安装图上。它们不出现在 product-safe 的 patch insert 列表中，也不出现在 product-safe 包的 `dependencies` 里。
 

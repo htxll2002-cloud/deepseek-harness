@@ -12,7 +12,7 @@ Deleting official packages would break upstream compare and upgrade. Reusing `mi
 
 ## Decision
 
-Product-safe is a **standalone** profile bundle, `@deepseek-ai/dsh-product-safe`, not `dsh-base` plus disables. `PROFILE_TEMPLATES['product-safe']` names only that bundle. The CLI alias `dsh product-safe` mirrors `dsh web`. The shipped roster is `apps/cli/config/product-safe-presets/` with a single `product-safe` preset (Safe Generic Product Agent). `includeUserRoot` is false.
+Product-safe is a **standalone** profile bundle, `@deepseek-ai/dsh-product-safe`, not `dsh-base` plus disables. The package name is inherited for monorepo compatibility; the manifest is `private: true` and must not be published or represented as an official DeepSeek package. `PROFILE_TEMPLATES['product-safe']` names only that bundle. The CLI alias `dsh product-safe` mirrors `dsh web`. The shipped roster is `apps/cli/config/product-safe-presets/` with a single `product-safe` preset (Safe Generic Product Agent). `includeUserRoot` is false.
 
 Coding packages remain in the monorepo and on the official `dsh web` install graph. They are absent from the product-safe patch insert list and from the product-safe package's `dependencies`.
 

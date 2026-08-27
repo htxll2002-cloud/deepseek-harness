@@ -4,6 +4,8 @@
 
 独立的产品安全 DeepSeek Harness 配置组合。[`cordis.patch.yml`](cordis.patch.yml) 是覆盖空 profile 根的完整 insert —— 它不会先叠加 [`dsh-base`](../base/README.zh.md) 再禁用 coding 行。官方 coding 包仍留在 monorepo 中；本 profile 不加载、不注册、不路由、不展示它们。
 
+`@deepseek-ai/dsh-product-safe` 是早期开发为兼容 monorepo 而沿用的内部 workspace 包名。它是 private 的，不得发布，也不得被表述为官方 DeepSeek 包。产品命名与包命名空间会在 branding 阶段再决定。
+
 本组合包挂载 Core / Agent Loop / Session / Conversation / Tool Protocol / streaming / Tool View / attachment 基础设施，将 Host 仅绑定到 `127.0.0.1`，并提供官方会话外壳。它不挂载 Shell、文件系统工具、Terminal、Code Runtime、Workspace、目录选择器、Skills、凭据、付费 LLM 适配器、由模型编写的 Extension，以及用户插件管理。
 
 `dsh --profile product-safe`（别名 `dsh product-safe`）接受 `--host`、`--port` 和 `--trusted-host`。唯一允许的 `--host` 是 `127.0.0.1`（省略即该字面量）。Startup 打印 URL，不打开浏览器。普通 startup 提供方发布 `webStartup`；由 flag 配置的行会注入该服务，因此 `dsh product-safe --help` 不会启动服务器。

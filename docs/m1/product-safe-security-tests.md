@@ -8,7 +8,7 @@ All M1 security tests are keyless. They boot `@deepseek-ai/dsh-product-safe` ove
 
 | File | Asserts |
 |---|---|
-| `packages/bundle/product-safe/tests/composition.spec.ts` | Patch has no forbidden row ids; package.json has no coding deps; allowlist matches `PRODUCT_SAFE_ALLOWED_METHODS`; `requireWorkspace: false` |
+| `packages/bundle/product-safe/tests/composition.spec.ts` | Patch has no forbidden row ids; package.json has no coding deps; allowlist matches `PRODUCT_SAFE_ALLOWED_METHODS`; `requireWorkspace: false`; package is private and not an official publish target |
 | `packages/bundle/product-safe/tests/client-coding-ui.spec.ts` | Coding `ui-*` rows absent; conversation / sidebar / tool / streaming rows present |
 | `packages/bundle/product-safe/tests/product-safe-tool-deny.spec.ts` | Hostile `tools.execute` for M0 wire names and aliases → unregistered / `UNKNOWN_TOOL` on host and after session compose; echo present only after compose |
 | `packages/bundle/product-safe/tests/product-safe-host-deny.spec.ts` | HTTP POST of workspace / directory / plugin / credentials / settings-mutate / skill / goal / subagent / discoverModels → **404**; `session.list` and stripped `host.describe` succeed |
