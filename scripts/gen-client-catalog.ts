@@ -28,8 +28,23 @@ import type { ScannedFile, SlotDeclaration, SlotRegistration, TypeDeclaration } 
 const root = resolve(import.meta.dirname, '..')
 const OUT = 'packages/extensions/cordis-client-runner/src/client/slot-catalog.ts'
 
-/** Source globs: every workspace package's sources, `.tsx` included (a contract may live in one). */
+/** Source globs: workspace package sources, `.tsx` included (a contract may live in one). */
 const SOURCE_GLOBS = ['packages/*/*/src/**/*.ts', 'packages/*/*/src/**/*.tsx']
+
+/**
+ * Product-only Design packages occupy official slots in product-safe
+ * composition. They are not occupants of the shipped coding/web catalog that
+ * `cordis_inspect what:"client"` teaches.
+ */
+const PRODUCT_ONLY_SOURCE_PREFIXES = [
+  'packages/client/ui-design-image/',
+  'packages/design/',
+  'packages/bundle/product-safe/',
+] as const
+
+function isOfficialWebCatalogSource(rel: string): boolean {
+  return !PRODUCT_ONLY_SOURCE_PREFIXES.some(prefix => rel.startsWith(prefix))
+}
 
 /** Slot cardinalities the contract allows. */
 const KINDS = ['single', 'list', 'keyed', 'chain'] as const
@@ -131,6 +146,7 @@ export interface SlotEntry {
  */
 export function collectSlotEntries(scanRoot: string): SlotEntry[] {
   const files = scanSlotFiles(scanRoot, SOURCE_GLOBS)
+    .filter(file => isOfficialWebCatalogSource(file.rel))
   const declarations = files.flatMap(file => slotDeclarations(file))
   const registrations = files.flatMap(file => slotRegistrations(file))
   const types = indexExportedTypes(scanRoot, SOURCE_GLOBS)

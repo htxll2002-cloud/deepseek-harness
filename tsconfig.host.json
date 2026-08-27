@@ -254,6 +254,7 @@
     { "path": "./packages/bundle/base" },
     { "path": "./packages/bundle/headless" },
     { "path": "./packages/bundle/web-app" },
+    { "path": "./packages/design/image-tools" },
     { "path": "./packages/bundle/product-safe" },
     { "path": "./packages/boot/app-boot" },
     { "path": "./packages/boot/cmdline" },

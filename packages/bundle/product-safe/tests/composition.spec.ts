@@ -24,6 +24,7 @@ describe('product-safe composition', () => {
     expect(ids.has('ui-conversation')).toBe(true)
     expect(ids.has('ui-sidebar')).toBe(true)
     expect(ids.has('ui-tool')).toBe(true)
+    expect(ids.has('ui-design-image')).toBe(true)
     expect(ids.has('agent-loop')).toBe(true)
     expect(ids.has('session')).toBe(true)
   })

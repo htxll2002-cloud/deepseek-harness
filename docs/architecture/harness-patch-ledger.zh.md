@@ -2,9 +2,13 @@
 
 [English](harness-patch-ledger.md) | 中文
 
-**Milestone:** `M1_PRODUCT_SAFE_HARNESS`
+**Milestone:** `M2_DESIGN_TOOL_VIEW_SPIKE`
+
 **Foundation:** `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` (`dsh-v0.1.1-rc.2`)
+
 **M0 closeout:** `405d845f5f60724f48fb7b0a883174f34a1c695d`
+
+**M1 closeout:** `c4dc6a10866b77c42b8ad5f15f27640ce5773ee6`
 
 用下面的命令比较产品改动：
 
@@ -12,7 +16,7 @@
 git diff stable-base...HEAD
 ```
 
-`stable-base` 必须保持官方 Harness 基线。M1 工作位于 `product/m1-safe-harness`。
+`stable-base` 必须保持官方 Harness 基线。M2 工作位于 `product/m2-design-tool-view-spike`。
 
 ---
 
@@ -25,9 +29,10 @@ git diff stable-base...HEAD
 | NEW_PRESET | `product-safe` |
 | NEW_PRODUCT_COMPOSITION | 独立 patch + CLI preset 根覆盖 |
 | NEW_TEST | Product-safe 与能力测试 |
-| PRODUCT_ADAPTER | 由组合包持有的 mock LLM / echo 夹具 |
+| PRODUCT_ADAPTER | 由第一方包持有的 mock LLM / echo 夹具 / Design 图片 mock |
 | UPSTREAM_CORE_PATCH | 小型宿主能力开关；不是 Agent/Session/Tool 协议 |
 | UPSTREAM_UI_CORE_PATCH | 官方 UI 注入中按占用情况创建会话 |
+| CATALOG_ONLY | 生成的官方 catalog 扫描过滤；不改变运行时占用者或协议 |
 
 ---
 
@@ -111,6 +116,26 @@ product-safe patch 可以省略插件、设置 `requireWorkspace: false`，并�
 不得通过伪造 `/tmp` cwd、用 CSS 隐藏选择器、或为每个 profile 修改 `WorkspaceRuntime.startSession` 来删除补丁。
 
 ---
+
+## M2 第一方图片 spike（没有新增上游协议补丁）
+
+| file | reason | category | upstream impact | runtime behavior changed |
+|---|---|---|---|---|
+| `packages/design/image-tools/**` | 第一方 `generate_image` / `edit_image` + mock PNG | NEW_BUNDLE | none（新 private 包） | YES when the Design preset is mounted |
+| `packages/client/ui-design-image/**` | 官方 `tool.call.toolview` + `conversation.input.dock` 占用者 | NEW_BUNDLE | none（新 private 包） | YES in product-safe UI |
+| `packages/bundle/product-safe/cordis.patch.yml` | 插入 `ui-design-image`；Design 人设 | NEW_PRODUCT_COMPOSITION | 官方 web 不变 | YES for product-safe |
+| `apps/cli/config/product-safe-presets/product-safe/**` | 用图片工具替换 echo | NEW_PRESET | none | YES |
+| `packages/bundle/product-safe/src/llm-mock.ts` | 路由 generate/edit；仅在重新挂载时走 echo | PRODUCT_ADAPTER | none | YES |
+| `tsconfig.host.json`, `tsconfig.client.json`, `tsconfig.base.json` | 注册新包 | CONFIGURATION | typecheck | NO |
+| `scripts/gen-client-catalog.ts` | 官方 client slot catalog 扫描省略仅产品 Design 包 | CATALOG_ONLY | 官方占用者列表与 M1 一致 | NO |
+
+**UPSTREAM_CORE_PATCH count:** 仍为 1（apiproxy workspace 开关）。M2 没有增加核心协议补丁。
+
+**UPSTREAM_UI_CORE_PATCH count:** 仍为 3。M2 占用官方 slot，不编辑 ConversationRoot。
+
+**M2 新增上游运行时补丁:** 0。`packages/extensions/cordis-client-runner/src/client/slot-catalog.ts` 的 M2 diff 为 0。M2 只增加第一方 Design 包、product-safe 组合、product-safe preset、测试和文档。
+
+见 [docs/m2/design-tool-view-architecture.zh.md](../m2/design-tool-view-architecture.zh.md) 与 [docs/m2/dsh-image-gen-transplant-ledger.zh.md](../m2/dsh-image-gen-transplant-ledger.zh.md)。
 
 ## M1 tests
 

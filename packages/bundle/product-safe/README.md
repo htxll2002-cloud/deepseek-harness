@@ -12,7 +12,7 @@ The bundle mounts Core / Agent Loop / Session / Conversation / Tool Protocol / s
 
 Session create uses `requireWorkspace: false`. A product session exists with `cwd` unset. The profile does not invent a `/tmp` project directory.
 
-The `product-safe` preset (shipped beside the CLI at `apps/cli/config/product-safe-presets/product-safe`) is a Safe Generic Product Agent. Its only model-facing tool is the M1 fixture `product_safe_echo`. The host-plane mock route `product-safe-mock` answers without a paid key: user text starting with `echo:` becomes that tool call; otherwise it replies with a short safe sentence.
+The `product-safe` preset (shipped beside the CLI at `apps/cli/config/product-safe-presets/product-safe`) is a Design Image Spike Agent. Its model-facing tools are `generate_image` and `edit_image` from `@deepseek-ai/dsh-image-tools`. The host-plane mock route `product-safe-mock` answers without a paid key: generate/edit requests become those tool calls; otherwise it replies with a short design-spike sentence. The M1 fixture `product_safe_echo` remains remountable for tests and is not in this preset.
 
 `/api/<method>` is an allowlist (`src/allowed-methods.ts`). Methods outside the list receive HTTP 404 before the API gateway. `host.describe` stays because the browser handshake requires it; with `requireWorkspace: false` it returns empty path strings and `canOpenPath: false`.
 
@@ -27,7 +27,7 @@ The product-safe preset persona is the complete system prompt (`complete: true`)
 ##### Verbatim text for this field, when needed
 
 ```markdown
-Safe Generic Product Agent
+Design Image Spike Agent. Use generate_image to create images and edit_image with an explicit source_attachment_id to edit a selected image. Do not choose a provider.
 ```
 
 #### Token effect
@@ -38,21 +38,15 @@ One short constant persona string per session.
 
 Prefix-stable for the life of the session. The persona does not change across turns.
 
-### Echo fixture tool
+### Design image tools
 
 #### What the model sees
 
-When the `product-safe` preset is mounted, the catalog contains only `product_safe_echo` (`{text}` → `{text}`). No shell, filesystem, terminal, or code-execution tool is listed. See the generated [tool catalog](../../../docs/tool-catalog.md) after a later harvest if this name is added there; this package owns the fixture description:
-
-##### Verbatim text for this field, when needed
-
-```markdown
-Echo the supplied text. Fixture tool for the product-safe profile.
-```
+When the `product-safe` preset is mounted, the catalog contains `generate_image` and `edit_image`. No shell, filesystem, terminal, or code-execution tool is listed. [`@deepseek-ai/dsh-image-tools`](../../design/image-tools/README.md) owns the verbatim tool descriptions.
 
 #### Token effect
 
-One tool schema while the preset is mounted. Zero tools on the host-global catalog.
+Two tool schemas while the preset is mounted. Zero tools on the host-global catalog.
 
 #### KV Cache effect
 
@@ -63,4 +57,5 @@ The catalog is fixed for the preset mount. It does not grow from user plugin ins
 - **Sidebar session list is empty** — official session browsing occupies `sidebar.workspaces` via `ui-workspace`. Product-safe omits that plugin so the directory picker cannot appear. New Session and conversation auto-create still open a cwd-less session. M2 can add a product session-list occupant.
 - **Client runtime still constructs WorkspaceRuntime** — official `client-runtime` always provides `ctx.workspaces`. Product-safe does not mount workspace or directory-picker Host plugins; those RPCs 404. Removing the runtime object would rewrite client global state (M1 stop line).
 - **`host.describe` remains callable** — the connection handshake throws if it 404s. The method is allowlisted and must not leak host paths.
-- **`product_safe_echo` is a fixture** — not a Design tool. M2 introduces the Design Agent preset.
+- **`product_safe_echo` is a remountable fixture** — it is not in the Design preset catalog.
+- **Selection is spike state** — Continue Editing writes `[source:<attachmentId>]`. That choice is not a product artifact working state.

@@ -2,9 +2,13 @@
 
 English | [中文](harness-patch-ledger.zh.md)
 
-**Milestone:** `M1_PRODUCT_SAFE_HARNESS`
+**Milestone:** `M2_DESIGN_TOOL_VIEW_SPIKE`
+
 **Foundation:** `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` (`dsh-v0.1.1-rc.2`)
+
 **M0 closeout:** `405d845f5f60724f48fb7b0a883174f34a1c695d`
+
+**M1 closeout:** `c4dc6a10866b77c42b8ad5f15f27640ce5773ee6`
 
 Compare product changes with:
 
@@ -12,7 +16,7 @@ Compare product changes with:
 git diff stable-base...HEAD
 ```
 
-`stable-base` must remain the official Harness baseline. M1 work lives on `product/m1-safe-harness`.
+`stable-base` must remain the official Harness baseline. M2 work lives on `product/m2-design-tool-view-spike`.
 
 ---
 
@@ -25,9 +29,10 @@ git diff stable-base...HEAD
 | NEW_PRESET | `product-safe` |
 | NEW_PRODUCT_COMPOSITION | Standalone patch + CLI preset root overlay |
 | NEW_TEST | Product-safe and capability tests |
-| PRODUCT_ADAPTER | Mock LLM / echo fixture owned by the bundle |
+| PRODUCT_ADAPTER | Mock LLM / echo fixture / Design image mock owned by first-party packages |
 | UPSTREAM_CORE_PATCH | Small host capability flag; not Agent/Session/Tool protocol |
 | UPSTREAM_UI_CORE_PATCH | Occupancy-driven session create in official UI injects |
+| CATALOG_ONLY | Generated official catalog scan filter; no runtime occupant or protocol change |
 
 ---
 
@@ -111,6 +116,26 @@ Delete a product-line patch only after official Harness lands the same capabilit
 Do not delete a patch by faking `/tmp` cwd, CSS-hiding the picker, or changing `WorkspaceRuntime.startSession` for every profile.
 
 ---
+
+## M2 first-party image spike (no new upstream protocol patches)
+
+| file | reason | category | upstream impact | runtime behavior changed |
+|---|---|---|---|---|
+| `packages/design/image-tools/**` | First-party `generate_image` / `edit_image` + mock PNG | NEW_BUNDLE | none (new private package) | YES when the Design preset is mounted |
+| `packages/client/ui-design-image/**` | Official `tool.call.toolview` + `conversation.input.dock` occupants | NEW_BUNDLE | none (new private package) | YES in product-safe UI |
+| `packages/bundle/product-safe/cordis.patch.yml` | Insert `ui-design-image`; Design persona | NEW_PRODUCT_COMPOSITION | official web unchanged | YES for product-safe |
+| `apps/cli/config/product-safe-presets/product-safe/**` | Replace echo with image tools | NEW_PRESET | none | YES |
+| `packages/bundle/product-safe/src/llm-mock.ts` | Route generate/edit; echo only if remounted | PRODUCT_ADAPTER | none | YES |
+| `tsconfig.host.json`, `tsconfig.client.json`, `tsconfig.base.json` | Register the new packages | CONFIGURATION | typecheck | NO |
+| `scripts/gen-client-catalog.ts` | Official client slot catalog scan omits product-only Design packages | CATALOG_ONLY | official occupant list matches M1 | NO |
+
+**UPSTREAM_CORE_PATCH count:** still 1 (apiproxy workspace flag). M2 did not add a core protocol patch.
+
+**UPSTREAM_UI_CORE_PATCH count:** still 3. M2 occupies official slots and does not edit ConversationRoot.
+
+**M2 new upstream runtime patches:** 0. `packages/extensions/cordis-client-runner/src/client/slot-catalog.ts` M2 diff is 0. M2 adds first-party Design packages, product-safe composition, the product-safe preset, tests, and docs.
+
+See [docs/m2/design-tool-view-architecture.md](../m2/design-tool-view-architecture.md) and [docs/m2/dsh-image-gen-transplant-ledger.md](../m2/dsh-image-gen-transplant-ledger.md).
 
 ## M1 tests
 
